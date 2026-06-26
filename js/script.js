@@ -373,21 +373,28 @@ const JanVikasAI = {
           this.openCopilot();
         }
 
-        // 3. Section scroll — map scroll targets to visible panels
+// 3. Section scroll — map scroll targets to visible panels
         const scrollMap = {
           'command-center':        '.page-header',
           'development-priorities':'.priority-panel',
           'demand-hotspots':       '.heatmap-panel',
-          'infrastructure-gaps':   '.analytics-band',
+          'infrastructure-gaps':   '#infra-gaps',
           'ai-recommendations':    '.ai-panel',
+          'governance-copilot':    '.ai-panel',
           'executive-brief':       '.brief-section',
+          'dpr-generator':         '.brief-section',
+          'budget-proposals':      '.brief-section',
           'citizen-signals':       '.signals-panel',
           'development-themes':    '.fusion-section',
+          'district-compare':      '.fusion-section',
         };
-        const target = scrollMap[this.state.activeNav];
-        if (target) {
-          const el = document.querySelector(target);
-          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+const target = scrollMap[this.state.activeNav];
+        if (target && item.dataset.opensCopilot !== 'true') {
+          const targetEl = document.querySelector(target);
+          if (targetEl) {
+            const top = targetEl.getBoundingClientRect().top + window.pageYOffset - 70;
+            window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+          }
         }
       });
     });
@@ -812,12 +819,13 @@ const JanVikasAI = {
     // Place all markers
     this._placeMarkers(this.state.suggestions);
 
-    // Fix map size after CSS layout settles
+  // Fix map size after CSS layout settles — two calls to handle aspect-ratio timing
     setTimeout(() => { this._map.invalidateSize(); }, 300);
-  },
+    setTimeout(() => { this._map.invalidateSize(); }, 1000);
 
-  /* Place (or replace) markers for the given suggestion array */
+/* Place (or replace) markers for the given suggestion array */
   _placeMarkers(suggestions) {
+    if (!this._map) return;
     // Remove existing markers
     this._markers.forEach(m => m.remove());
     this._markers = [];
@@ -844,6 +852,8 @@ const JanVikasAI = {
   /* Apply filter to map markers based on active filters.
      Accepts an object with any of: { state, theme, search, layer } */
   _applyMapFilter(updates = {}) {
+ _applyMapFilter(updates = {}) {
+    if (!this._map) return;
     // Merge updates into persistent filter state
     Object.assign(this.state.mapFilter, updates);
     const { state: stateF, theme, search, layer } = this.state.mapFilter;
