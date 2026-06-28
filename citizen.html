@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JanVikas AI — Public Citizen Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* Additional custom rules specifically for Citizen Portal visual polish */
+    :root {
+      --glow-emerald: 0 0 15px rgba(16, 185, 129, 0.25);
+      --glow-indigo: 0 0 15px rgba(99, 102, 241, 0.25);
+      --glow-crimson: 0 0 15px rgba(239, 68, 68, 0.25);
+    }
+    
+    .citizen-body {
+      background: linear-gradient(180deg, var(--bg-void) 0%, var(--bg-deep) 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .citizen-header {
+      background: rgba(7, 11, 20, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .citizen-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .citizen-logo .emblem {
+      font-size: 24px;
+    }
+
+    .header-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      padding: 4px 10px;
+      border-radius: 20px;
+      color: var(--indigo-300);
+    }
+
+    .main-grid {
+      max-width: 1200px;
+      margin: 32px auto;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 32px;
+      width: 100%;
+      flex: 1;
+    }
+
+    /* Column layout */
+    .left-column, .right-column {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Intake card specific styling */
+    .intake-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-xl);
+      padding: 28px;
+      position: relative;
+    }
+
+    .intake-card-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .intake-card-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    /* Voice recording module */
+    .voice-module {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--r-lg);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      margin-bottom: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .voice-module.recording {
+      border-color: var(--crimson-500);
+      box-shadow: var(--glow-crimson);
+    }
+
+    .mic-button {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--indigo-500), var(--violet-500));
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+      margin-bottom: 16px;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .mic-button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 24px rgba(99, 102, 241, 0.6);
+    }
+
+    .mic-button.active {
+      background: var(--crimson-500);
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+      animation: mic-pulse 1.5s infinite;
+    }
+
+    .mic-icon {
+      font-size: 24px;
+      color: white;
+    }
+
+    @keyframes mic-pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
+    .voice-status {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .voice-status.recording-text {
+      color: var(--crimson-400);
+      font-weight: 600;
+    }
+
+    .voice-timer {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    /* Wave visualizer simulation */
+    .wave-container {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      height: 24px;
+      margin-top: 12px;
+    }
+
+    .wave-bar {
+      width: 3px;
+      height: 6px;
+      background: var(--indigo-400);
+      border-radius: 2px;
+      transition: height 0.1s ease;
+    }
+
+    .recording .wave-bar {
+      background: var(--crimson-400);
+      animation: sound-wave 1.2s ease-in-out infinite alternate;
+    }
+
+    .recording .wave-bar:nth-child(2) { animation-delay: 0.15s; }
+    .recording .wave-bar:nth-child(3) { animation-delay: 0.3s; }
+    .recording .wave-bar:nth-child(4) { animation-delay: 0.45s; }
+    .recording .wave-bar:nth-child(5) { animation-delay: 0.05s; }
+    .recording .wave-bar:nth-child(6) { animation-delay: 0.25s; }
+    .recording .wave-bar:nth-child(7) { animation-delay: 0.4s; }
+
+    @keyframes sound-wave {
+      0% { height: 4px; }
+      100% { height: 24px; }
+    }
+
+    /* Text Entry Field */
+    .text-module {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .text-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .portal-textarea {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--r-md);
+      padding: 16px;
+      font-family: var(--font-body);
+      font-size: 13.5px;
+      color: var(--text-primary);
+      min-height: 120px;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .portal-textarea:focus {
+      border-color: var(--border-accent);
+    }
+
+    .char-counter-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-tertiary);
+      font-family: var(--font-mono);
+    }
+
+    /* Image Upload Section */
+    .image-module {
+      margin-bottom: 24px;
+    }
+
+    .drag-drop-zone {
+      background: rgba(255, 255, 255, 0.02);
+      border: 2px dashed var(--border-subtle);
+      border-radius: var(--r-md);
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .drag-drop-zone:hover, .drag-drop-zone.dragover {
+      background: var(--bg-hover);
+      border-color: var(--border-accent);
+    }
+
+    .upload-icon {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .upload-title {
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .upload-subtitle {
+      font-size: 11px;
+      color: var(--text-tertiary);
+    }
+
+    /* Thumbnail previews container */
+    .thumbnails-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .thumb-preview {
+      aspect-ratio: 1;
+      border-radius: var(--r-sm);
+      border: 1px solid var(--border-glass);
+      background-size: cover;
+      background-position: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .thumb-remove {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: rgba(0, 0, 0, 0.6);
+      border: none;
+      color: white;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    /* Location Dropdowns Layout */
+    .location-module {
+      margin-bottom: 28px;
+    }
+
+    .location-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    .loc-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .loc-label {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .loc-select {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--r-sm);
+      padding: 8px 12px;
+      font-family: var(--font-body);
+      font-size: 12.5px;
+      color: var(--text-primary);
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 14px;
+      padding-right: 32px;
+    }
+
+    .loc-select:focus {
+      border-color: var(--border-accent);
+    }
+
+    /* Form actions */
+    .form-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .no-category-banner {
+      display: flex;
+      gap: 10px;
+      background: rgba(99, 102, 241, 0.08);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      border-radius: var(--r-md);
+      padding: 12px 16px;
+      font-size: 12px;
+      color: var(--indigo-300);
+      line-height: 1.4;
+    }
+
+    .no-category-banner svg {
+      flex-shrink: 0;
+      color: var(--indigo-400);
+    }
+
+    /* Timeline Process Panel */
+    .timeline-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-xl);
+      padding: 24px;
+    }
+
+    .timeline-title {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .timeline-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: relative;
+    }
+
+    .timeline-steps::before {
+      content: '';
+      position: absolute;
+      left: 11px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--bg-elevated);
+      z-index: 1;
+    }
+
+    .timeline-step {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .step-marker {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--bg-elevated);
+      border: 2px solid var(--border-glass);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-tertiary);
+      transition: all 0.3s ease;
+    }
+
+    .step-content {
+      flex: 1;
+    }
+
+    .step-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      transition: all 0.3s ease;
+    }
+
+    .step-desc {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    /* Timeline states */
+    .timeline-step.active .step-marker {
+      background: rgba(99, 102, 241, 0.2);
+      border-color: var(--indigo-500);
+      color: var(--indigo-300);
+      box-shadow: var(--glow-indigo);
+    }
+
+    .timeline-step.active .step-name {
+      color: var(--text-primary);
+    }
+
+    .timeline-step.completed .step-marker {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: var(--emerald-500);
+      color: var(--emerald-400);
+    }
+
+    .timeline-step.completed .step-name {
+      color: var(--emerald-400);
+    }
+
+    /* AI results container */
+    .ai-results-panel {
+      background: linear-gradient(180deg, rgba(99, 102, 241, 0.08) 0%, var(--bg-card) 100%);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: var(--r-xl);
+      padding: 28px;
+    }
+
+    .ai-results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      padding-bottom: 12px;
+    }
+
+    .ai-results-title {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .ai-confidence-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 3px 8px;
+      border-radius: 4px;
+      color: var(--emerald-400);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* Structured key-value fields */
+    .structured-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .res-block {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--r-md);
+      padding: 12px 14px;
+    }
+
+    .res-block.span-2 {
+      grid-column: 1 / -1;
+    }
+
+    .res-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .res-value {
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .res-value.accent-water { color: var(--sky-400); }
+    .res-value.accent-health { color: var(--emerald-400); }
+    .res-value.accent-critical { color: var(--crimson-400); }
+
+    /* Duplicate protection suggestions */
+    .proposals-title {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .proposals-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .proposal-item {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--r-md);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .proposal-item:hover {
+      border-color: var(--border-accent);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .proposal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .proposal-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .proposal-match {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      padding: 2px 6px;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: 4px;
+      color: var(--indigo-300);
+    }
+
+    .proposal-meta {
+      display: flex;
+      gap: 12px;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .proposal-action-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+      border-top: 1px solid rgba(255, 255, 255, 0.03);
+      padding-top: 8px;
+    }
+
+    .support-btn {
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--emerald-400);
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .support-btn:hover {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: var(--emerald-500);
+    }
+
+    .support-btn.supported {
+      background: var(--emerald-500);
+      color: white;
+      border-color: var(--emerald-500);
+      cursor: default;
+    }
+
+    /* Privacy and footer */
+    .privacy-card {
+      background: rgba(255, 255, 255, 0.01);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--r-lg);
+      padding: 20px;
+    }
+
+    .privacy-title {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .privacy-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .privacy-item {
+      display: flex;
+      gap: 8px;
+    }
+
+    .privacy-item::before {
+      content: '🛡️';
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .privacy-item.human::before {
+      content: '👥';
+    }
+
+    .citizen-footer {
+      background: var(--bg-void);
+      border-top: 1px solid var(--border-subtle);
+      padding: 24px;
+      text-align: center;
+      margin-top: auto;
+    }
+
+    .footer-text {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      font-family: var(--font-mono);
+    }
+
+    /* Processing layout container */
+    .processing-container {
+      display: none; /* Controlled by JS */
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Helper utility classes */
+    .pulse-glow-amber {
+      box-shadow: var(--shadow-amber);
+    }
+  </style>
+</head>
+<body class="citizen-body">
+
+  <!-- ═══════════════════════════════════════
+       CITIZEN PORTAL HEADER
+  ═══════════════════════════════════════ -->
+  <header class="citizen-header">
+    <div class="header-container">
+      <div class="citizen-logo">
+        <span class="emblem">🇮🇳</span>
+        <div>
+          <h1 class="logo-text" style="font-size: 17px; margin-bottom: 1px;">JanVikas AI</h1>
+          <div class="logo-sub">Public Citizen Evidence Portal</div>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <span class="header-badge">GDG India · Track 1 Challenge</span>
+        <div class="topbar-pulse">
+          <div class="pulse-dot"></div>
+          <span style="font-size: 11px;">1,247 national signals aggregated</span>
+        </div>
+        <div class="topbar-time" id="portal-clock">25 Jun 2026 · 08:00 UTC</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════
+       PORTAL CORE WORKSPACE
+  ═══════════════════════════════════════ -->
+  <main class="main-grid" id="portal-grid">
+
+    <!-- LEFT COLUMN: INPUT FORM & TIMELINE -->
+    <section class="left-column">
+      
+      <!-- CITIZEN INTAKE FORM CARD -->
+      <div class="intake-card" id="citizen-intake-card">
+        <h2 class="intake-card-title">Share Your Development Needs</h2>
+        <p class="intake-card-desc">
+          Describe water, school, clinic, electricity, or road issues in your village or ward. Your input will be transcribed, translated, and automatically prioritized. 
+        </p>
+
+        <!-- INPUT TOGGLE BUTTONS -->
+        <div class="panel-actions" style="margin-bottom: 24px; display: flex; gap: 8px;">
+          <button class="pill-btn active" id="btn-input-text" onclick="JanVikasCitizen.setInputType('text')">✍️ Text Proposal</button>
+          <button class="pill-btn inactive" id="btn-input-voice" onclick="JanVikasCitizen.setInputType('voice')">🎤 Native Voice</button>
+        </div>
+
+        <form id="evidence-intake-form" onsubmit="JanVikasCitizen.handleFormSubmit(event)">
+          
+          <!-- VOICE RECORDER FIELD -->
+          <div class="voice-module" id="voice-entry-area" style="display: none;">
+            <button type="button" class="mic-button" id="mic-toggle" onclick="JanVikasCitizen.toggleVoiceRecording()">
+              <span class="mic-icon">🎙️</span>
+            </button>
+            <div class="voice-status" id="recording-status-label">Tap to Record in Your Native Language</div>
+            <div class="voice-timer" id="recording-timer" style="display: none;">00:00</div>
+            <div class="wave-container" id="sound-wave" style="display: none;">
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+            </div>
+            <div style="font-size: 11px; color: var(--text-tertiary); max-width: 320px; margin-top: 14px; line-height: 1.4;">
+              Supports 22 languages including Hindi, Telugu, Tamil, Bengali, Marathi, and Kannada. Auto-translated by Gemini.
+            </div>
+          </div>
+
+          <!-- TEXT INPUT AREA -->
+          <div class="text-module" id="text-entry-area">
+            <label class="text-label" for="citizen-description">Describe the Infrastructure Need</label>
+            <textarea 
+              id="citizen-description" 
+              class="portal-textarea" 
+              placeholder="e.g., 'The drinking water pipeline to Gidkhini village has been dry for 10 months. Our school children fetch water from a contaminated canal 3km away, leading to severe illness and missing school...'"
+              oninput="JanVikasCitizen.handleTextareaInput()"
+              maxlength="2000"
+            ></textarea>
+            <div class="char-counter-row">
+              <span style="color: var(--text-tertiary)">Write in Hindi, Odia, Bengali, Tamil, Telugu, English, etc.</span>
+              <span id="char-counter">0 / 2000 chars</span>
+            </div>
+          </div>
+
+          <!-- IMAGE ATTACHMENT FIELD -->
+          <div class="image-module">
+            <label class="text-label" style="display: block; margin-bottom: 10px;">Visual Evidence (Photos)</label>
+            <div 
+              class="drag-drop-zone" 
+              id="drop-zone" 
+              onclick="document.getElementById('file-upload-input').click()"
+            >
+              <div class="upload-icon">📸</div>
+              <div class="upload-title">Drag &amp; drop photos here or click to browse</div>
+              <div class="upload-subtitle">Supports JPEG, PNG up to 10MB (Max 4 photos)</div>
+              <input 
+                type="file" 
+                id="file-upload-input" 
+                multiple 
+                accept="image/*" 
+                style="display: none;" 
+                onchange="JanVikasCitizen.handleFileSelect(event)"
+              >
+            </div>
+            <!-- Preview list -->
+            <div class="thumbnails-container" id="preview-container" style="display: none;"></div>
+          </div>
+
+          <!-- LOCATION HIERARCHICAL SELECTOR -->
+          <div class="location-module">
+            <label class="text-label" style="display: block; margin-bottom: 4px;">Verified Location</label>
+            <div class="location-grid">
+              
+              <!-- STATE -->
+              <div class="loc-group">
+                <span class="loc-label">State</span>
+                <select class="loc-select" id="loc-state" onchange="JanVikasCitizen.onStateChange(this.value)">
+                  <option value="Uttar Pradesh">Uttar Pradesh</option>
+                  <option value="Bihar">Bihar</option>
+                  <option value="Odisha">Odisha</option>
+                </select>
+              </div>
+
+              <!-- DISTRICT -->
+              <div class="loc-group">
+                <span class="loc-label">District</span>
+                <select class="loc-select" id="loc-district" onchange="JanVikasCitizen.onDistrictChange(this.value)">
+                  <!-- Populate dynamically -->
+                </select>
+              </div>
+
+              <!-- CITY/BLOCK -->
+              <div class="loc-group">
+                <span class="loc-label">Block / City</span>
+                <select class="loc-select" id="loc-city" onchange="JanVikasCitizen.onCityChange(this.value)">
+                  <!-- Populate dynamically -->
+                </select>
+              </div>
+
+              <!-- WARD/VILLAGE -->
+              <div class="loc-group">
+                <span class="loc-label">Ward / Village</span>
+                <select class="loc-select" id="loc-ward">
+                  <!-- Populate dynamically -->
+                </select>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- SUBMIT ACTION -->
+          <div class="form-actions">
+            <div class="no-category-banner">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+              <span>Our system uses <strong>Computer Vision &amp; NLP</strong> to automatically match your submission with optimal state schemes. You do not need to label anything.</span>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" id="submit-intake-btn" style="width: 100%; height: 42px; font-weight: 600; justify-content: center; margin-top: 12px;">
+              ⚡ Analyze and Submit Proposal
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- PROCESSING FEEDBACK & TIMELINE (Shows during analysis simulation) -->
+      <div class="processing-container" id="analysis-processing-area">
+        
+        <!-- PROCESSING TIMELINE -->
+        <div class="timeline-panel glow-border">
+          <div class="timeline-title">
+            <span style="font-size: 16px;">⏳</span>
+            <span>Gemini AI Processing Pipeline</span>
+          </div>
+          <div class="timeline-steps">
+            <!-- Step 1 -->
+            <div class="timeline-step" id="step-received">
+              <div class="step-marker">01</div>
+              <div class="step-content">
+                <div class="step-name">Citizen Submission Received</div>
+                <div class="step-desc">Payload received, checking data boundaries</div>
+              </div>
+            </div>
+            <!-- Step 2 -->
+            <div class="timeline-step" id="step-lang">
+              <div class="step-marker">02</div>
+              <div class="step-content">
+                <div class="step-name">Language Auto-Detection</div>
+                <div class="step-desc">Identifying regional language characteristics</div>
+              </div>
+            </div>
+            <!-- Step 3 -->
+            <div class="timeline-step" id="step-stt">
+              <div class="step-marker">03</div>
+              <div class="step-content">
+                <div class="step-name">Gemini Voice Transcription</div>
+                <div class="step-desc">Transcribing multilingual voice to original script</div>
+              </div>
+            </div>
+            <!-- Step 4 -->
+            <div class="timeline-step" id="step-translation">
+              <div class="step-marker">04</div>
+              <div class="step-content">
+                <div class="step-name">Gemini Translation to English</div>
+                <div class="step-desc">Standardizing content for governance alignment</div>
+              </div>
+            </div>
+            <!-- Step 5 -->
+            <div class="timeline-step" id="step-vision">
+              <div class="step-marker">05</div>
+              <div class="step-content">
+                <div class="step-name">Image Understanding</div>
+                <div class="step-desc">Analyzing computer vision patterns inside photo metadata</div>
+              </div>
+            </div>
+            <!-- Step 6 -->
+            <div class="timeline-step" id="step-theme">
+              <div class="step-marker">06</div>
+              <div class="step-content">
+                <div class="step-name">Theme &amp; Infra Category Detection</div>
+                <div class="step-desc">Matching with NITI Aayog development goals</div>
+              </div>
+            </div>
+            <!-- Step 7 -->
+            <div class="timeline-step" id="step-similarity">
+              <div class="step-marker">07</div>
+              <div class="step-content">
+                <div class="step-name">Semantic Similarity &amp; Duplicate Search</div>
+                <div class="step-desc">Scanning active regional proposal clusters</div>
+              </div>
+            </div>
+            <!-- Step 8 -->
+            <div class="timeline-step" id="step-fusion">
+              <div class="step-marker">08</div>
+              <div class="step-content">
+                <div class="step-name">7-Source Evidence Fusion</div>
+                <div class="step-desc">Calculating demographic and satellite overlaps</div>
+              </div>
+            </div>
+            <!-- Step 9 -->
+            <div class="timeline-step" id="step-priority">
+              <div class="step-marker">09</div>
+              <div class="step-content">
+                <div class="step-name">Priority Vector Calculation</div>
+                <div class="step-desc">Assigning quantitative contribution to constituency budget</div>
+              </div>
+            </div>
+            <!-- Step 10 -->
+            <div class="timeline-step" id="step-ready">
+              <div class="step-marker">10</div>
+              <div class="step-content">
+                <div class="step-name">Government Brief Synced</div>
+                <div class="step-desc">Adding report to Lok Sabha MP Decision cockpit</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- RIGHT COLUMN: AI INTELLIGENCE RESULTS PANEL & SIMILAR PROPOSALS -->
+    <section class="right-column">
+
+      <!-- AI INTELLIGENCE RESULTS PANEL -->
+      <div class="ai-results-panel" id="ai-results-panel">
+        <div class="ai-results-header">
+          <div class="ai-results-title">✨ Gemini AI Analysis Report</div>
+          <div class="ai-confidence-badge" id="ai-confidence">
+            <span>🛡️</span> <span id="conf-score">96% AI Confidence</span>
+          </div>
+        </div>
+
+        <div class="structured-grid">
+          
+          <!-- LANGUAGE -->
+          <div class="res-block">
+            <div class="res-label">Detected Language</div>
+            <div class="res-value" id="res-detected-lang">Telugu (ISO: te_IN)</div>
+          </div>
+
+          <!-- THEME -->
+          <div class="res-block">
+            <div class="res-label">Development Theme</div>
+            <div class="res-value accent-water" id="res-theme">Water Infrastructure</div>
+          </div>
+
+          <!-- ORGINAL TRANSCRIPT -->
+          <div class="res-block span-2">
+            <div class="res-label" id="res-transcript-label">Original Transcript</div>
+            <div class="res-value" style="font-style: italic; line-height: 1.4; color: var(--text-secondary);" id="res-transcript">
+              "మా గ్రామంలో తాగునీటి సమస్య ఉంది. పిల్లలు స్కూలుకు వెళ్ళలేకపోతున్నారు. ఎందుకంటే 8 కిలోమీటర్లు వెళ్లి నీళ్లు మోసుకురావాల్సి వస్తోంది."
+            </div>
+          </div>
+
+          <!-- ENGLISH TRANSLATION -->
+          <div class="res-block span-2">
+            <div class="res-label">Gemini English Translation</div>
+            <div class="res-value" style="line-height: 1.4;" id="res-translation">
+              "There is a severe drinking water problem in our village. Children are unable to attend school because they must walk 8 kilometers daily to fetch clean water."
+            </div>
+          </div>
+
+          <!-- SCHEME -->
+          <div class="res-block">
+            <div class="res-label">Govt Scheme Alignment</div>
+            <div class="res-value" id="res-scheme">Jal Jeevan Mission (JJM)</div>
+          </div>
+
+          <!-- URGENCY -->
+          <div class="res-block">
+            <div class="res-label">Urgency Level</div>
+            <div class="res-value accent-critical" id="res-urgency">🔴 Critical (Score: 9.4/10)</div>
+          </div>
+
+          <!-- CLUSTER -->
+          <div class="res-block">
+            <div class="res-label font-mono">Evidence Cluster ID</div>
+            <div class="res-value font-mono" style="font-size: 11px;" id="res-cluster-id">Water-Cluster-07</div>
+          </div>
+
+          <!-- CONTRIBUTION -->
+          <div class="res-block">
+            <div class="res-label">Priority Contribution</div>
+            <div class="res-value" style="color: var(--amber-400);" id="res-contribution">HIGH (+1.8 to regional deficit)</div>
+          </div>
+
+          <!-- AI SUMMARY -->
+          <div class="res-block span-2" style="background: rgba(99, 102, 241, 0.05); border-color: rgba(99, 102, 241, 0.25);">
+            <div class="res-label" style="color: var(--indigo-300);">AI Synthesized Summary</div>
+            <div class="res-value" style="line-height: 1.5; font-size: 13px;" id="res-ai-summary">
+              Your multilingual submission has been successfully translated and categorized under <strong>Water Infrastructure</strong>. The evidence matches existing infrastructure gap profiles in Tikamgarh Block (−63% coverage below norm). The child school-dropout risk triggers a heavy critical priority score multiplier. This report has been consolidated into the active national evidence cockpit.
+            </div>
+          </div>
+
+        </div>
+
+        <!-- SIMILAR DEVELOPMENT PROPOSALS -->
+        <div class="proposals-title">Similar Proposals Near Your Location</div>
+        <div class="proposals-list" id="proposals-container">
+          
+          <!-- Proposal 1 -->
+          <div class="proposal-item" id="prop-card-1">
+            <div class="proposal-head">
+              <span class="proposal-name">Rural Drinking Water Network Upgrade</span>
+              <span class="proposal-match">94% AI Match</span>
+            </div>
+            <div class="proposal-meta">
+              <span>📍 Tikamgarh, UP</span>
+              <span>•</span>
+              <span>Theme: Water Infrastructure</span>
+            </div>
+            <div class="proposal-action-row">
+              <span style="font-size: 11px; color: var(--text-tertiary);" id="support-count-label-1">👥 4,821 citizens supporting</span>
+              <button class="support-btn" id="support-btn-1" onclick="JanVikasCitizen.supportProposal(1)">
+                <span>👍</span> Support Existing Proposal
+              </button>
+            </div>
+          </div>
+
+          <!-- Proposal 2 -->
+          <div class="proposal-item" id="prop-card-2">
+            <div class="proposal-head">
+              <span class="proposal-name">Panchayat Primary Health Centre Expansion</span>
+              <span class="proposal-match">42% Similarity</span>
+            </div>
+            <div class="proposal-meta">
+              <span>📍 Bundelkhand, UP</span>
+              <span>•</span>
+              <span>Theme: Healthcare Access</span>
+            </div>
+            <div class="proposal-action-row">
+              <span style="font-size: 11px; color: var(--text-tertiary);" id="support-count-label-2">👥 842 citizens supporting</span>
+              <button class="support-btn" id="support-btn-2" onclick="JanVikasCitizen.supportProposal(2)">
+                <span>👍</span> Support Existing Proposal
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <button class="btn btn-ghost" style="width: 100%; justify-content: center; font-size: 11px;" onclick="JanVikasCitizen.resetForm()">
+          🔄 Submit Another Development Need
+        </button>
+
+      </div>
+
+      <!-- PRIVACY & TRANSPARENCY BLOCK -->
+      <div class="privacy-card">
+        <h3 class="privacy-title">🛡️ Platform Transparency &amp; Privacy Safeguards</h3>
+        <ul class="privacy-list">
+          <li class="privacy-item">
+            <strong>Anonymized Data Pipelines:</strong> Your phone number and private identification are completely stripped. Only localized infrastructure evidence is shown to the government.
+          </li>
+          <li class="privacy-item">
+            <strong>Evidence Aggregation:</strong> Individual requests do not constitute single funding targets. Instead, Gemini AI fuses them into large, regional clusters to create unbiased statistical priority indicators.
+          </li>
+          <li class="privacy-item human">
+            <strong>Human Officials Retain Control:</strong> AI serves as a policy and prioritization support assistant for the Members of Parliament and Ministry officials. Final budgeting and project approvals are executed strictly by human officials.
+          </li>
+        </ul>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ═══════════════════════════════════════
+       FOOTER
+  ═══════════════════════════════════════ -->
+  <footer class="citizen-footer">
+    <div class="footer-text">
+      JanVikas AI — National Intelligence Platform · Official entry for GDG India Challenge FY2026-27 · Built with Gemini AI &amp; Cloud Security
+    </div>
+  </footer>
+
+  <!-- MODULE BACKEND CONTROLLER -->
+  <script src="js/citizen-portal.js"></script>
+</body>
+</html>
