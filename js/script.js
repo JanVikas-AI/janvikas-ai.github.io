@@ -819,11 +819,12 @@ const target = scrollMap[this.state.activeNav];
     // Place all markers
     this._placeMarkers(this.state.suggestions);
 
-  // Fix map size after CSS layout settles — two calls to handle aspect-ratio timing
+    // Fix map size after CSS layout settles — two calls to handle aspect-ratio timing
     setTimeout(() => { this._map.invalidateSize(); }, 300);
     setTimeout(() => { this._map.invalidateSize(); }, 1000);
+  },
 
-/* Place (or replace) markers for the given suggestion array */
+  /* Place (or replace) markers for the given suggestion array */
   _placeMarkers(suggestions) {
     if (!this._map) return;
     // Remove existing markers
@@ -852,7 +853,6 @@ const target = scrollMap[this.state.activeNav];
   /* Apply filter to map markers based on active filters.
      Accepts an object with any of: { state, theme, search, layer } */
   _applyMapFilter(updates = {}) {
- _applyMapFilter(updates = {}) {
     if (!this._map) return;
     // Merge updates into persistent filter state
     Object.assign(this.state.mapFilter, updates);
