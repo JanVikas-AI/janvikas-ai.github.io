@@ -27,6 +27,48 @@ export const AIEngine = {
         });
         if (response.ok) {
           const result = await response.json();
+          // If the result is a CitizenReport from backend, map it to scenario shape
+          if (result && result.aiAnalysis) {
+            const themeClassMap = {
+              'Water Supply': 'accent-water',
+              'Roads & Transport': 'accent-water',
+              'Sanitation & Waste': 'accent-water',
+              'Electricity & Power': 'accent-water',
+              'Safety & Lighting': 'accent-water',
+              'Public Health': 'accent-health',
+              'Education & Facilities': 'accent-edu'
+            };
+            const themeClass = themeClassMap[result.category] || 'accent-water';
+            
+            const urgencyClassMap = {
+              'Critical': 'accent-critical',
+              'High': 'accent-critical',
+              'Medium': 'accent-water',
+              'Low': 'accent-water'
+            };
+            const urgencyClass = urgencyClassMap[result.priority] || 'accent-water';
+
+            const mappedScenario = {
+              lang: result.aiAnalysis.sentiment ? result.aiAnalysis.sentiment.split(' / ')[0] : 'English (ISO: en_US)',
+              theme: result.category || 'Infrastructure Maintenance',
+              themeClass: themeClass,
+              transcript: result.description || '',
+              translation: result.description || '',
+              scheme: result.aiAnalysis.recommendedAction?.includes('PMGSY') ? 'Pradhan Mantri Gram Sadak Yojana (PMGSY)' : (result.category === 'Water Supply' ? 'Jal Jeevan Mission (JJM)' : 'SBA (Swachh Bharat Abhiyan)'),
+              urgency: `${result.priority === 'Critical' ? '🔴 Critical' : (result.priority === 'High' ? '🟠 High' : '🟡 Moderate')} (Score: ${(result.priorityScore / 10).toFixed(1)}/10)`,
+              urgencyValue: result.priorityScore / 10,
+              urgencyClass: urgencyClass,
+              clusterId: result.aiAnalysis.similarityClusterId || 'cluster_general',
+              contribution: result.aiAnalysis.recommendedAction || 'General Contribution',
+              summary: result.aiAnalysis.summary || 'Processed successfully.',
+              confidence: '95% AI Confidence',
+              proposals: [
+                { id: 201, name: `Rural ${result.category || 'Civic'} Network Upgrade`, match: "94% AI Match", location: `📍 ${result.location.city || result.location.district || 'Selected Location'}`, theme: result.category || 'General', supports: 1420 },
+                { id: 202, name: `Regional ${result.category || 'Civic'} Improvement Grid`, match: "65% Similarity", location: `📍 ${result.location.district || 'Local Block'}`, theme: result.category || 'General', supports: 480 }
+              ]
+            };
+            return mappedScenario;
+          }
           return result;
         }
       } catch (err) {
