@@ -1,0 +1,10 @@
+/* JanVikas AI — Dashboard Specific Custom Style Rules */
+:root {
+  --sidebar-width: 260px;
+}
+
+/* Ensure nice scrolling in dashboard lists */
+.sidebar-nav {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
