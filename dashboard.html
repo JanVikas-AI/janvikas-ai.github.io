@@ -1,18 +1,907 @@
-<!doctype html>
-<html lang="en" class="h-full bg-[#030712] text-gray-100">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>JanVikas AI - National Development Command Center</title>
-    <!-- Leaflet Map CSS for location analysis -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  </head>
-  <body class="h-full m-0 bg-[#020617] text-[#f8fafc] selection:bg-indigo-500/30 selection:text-indigo-200">
-    <div id="root" class="h-full"></div>
-    <script type="module" src="/src/dashboard-main.tsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JanVikas AI — National Development Intelligence Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin="">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ═══════════════════════════════════════
+       SIDEBAR
+  ═══════════════════════════════════════ -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-emblem">
+        <div class="logo-icon">🇮🇳</div>
+        <div>
+          <div class="logo-text">JanVikas AI</div>
+          <div class="logo-sub">Dev · Intelligence</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-scope">
+      <div class="scope-label">Constituency Scope</div>
+      <div class="scope-selector">
+        <div class="scope-dot"></div>
+        <span class="scope-name">All India · National</span>
+        <span class="scope-arrow">▾</span>
+      </div>
+    </div>
+
+    <div class="sidebar-nav">
+      <div class="nav-group">
+        <div class="nav-group-label">Command Center</div>
+        <a class="nav-item active" href="#" data-nav-id="command-center">
+          <span class="nav-icon">⚡</span>
+          <span class="nav-label">Command Center</span>
+        </a>
+        <a class="nav-item" href="#" data-nav-id="development-priorities">
+          <span class="nav-icon">🧠</span>
+          <span class="nav-label">Development Priorities</span>
+          <span class="nav-badge indigo">AI</span>
+        </a>
+        <a class="nav-item" href="#" data-nav-id="demand-hotspots">
+          <span class="nav-icon">🗺</span>
+          <span class="nav-label">Demand Hotspots</span>
+          <span class="nav-badge amber">47</span>
+        </a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Analysis Engine</div>
+        <a class="nav-item" href="#" data-nav-id="infrastructure-gaps">
+          <span class="nav-icon">🏗</span>
+          <span class="nav-label">Infrastructure Gaps</span>
+          <span class="nav-badge amber">28%</span>
+        </a>
+        <a class="nav-item" href="#" data-nav-id="ai-recommendations">
+          <span class="nav-icon">✨</span>
+          <span class="nav-label">AI Recommendations</span>
+        </a>
+        <a class="nav-item" href="#" data-nav-id="governance-copilot" id="open-copilot-btn" data-opens-copilot="true">
+          <span class="nav-icon">🤖</span>
+          <span class="nav-label">Governance Copilot</span>
+          <span class="nav-badge emerald">MP AI</span>
+        </a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Outputs</div>
+        <a class="nav-item" href="#" data-nav-id="executive-brief">
+          <span class="nav-icon">📋</span>
+          <span class="nav-label">Executive Brief</span>
+        </a>
+        <a class="nav-item" href="#" data-nav-id="dpr-generator">
+          <span class="nav-icon">🗂</span>
+          <span class="nav-label">DPR Generator</span>
+        </a>
+        <a class="nav-item" href="#" data-nav-id="budget-proposals">
+          <span class="nav-icon">📤</span>
+          <span class="nav-label">Budget Proposals</span>
+        </a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Evidence Layer</div>
+        <a class="nav-item" href="#" data-nav-id="development-themes">
+          <span class="nav-icon">🔬</span>
+          <span class="nav-label">Development Themes</span>
+        </a>
+        <a class="nav-item" href="#" data-nav-id="citizen-signals">
+          <span class="nav-icon">📡</span>
+          <span class="nav-label">Citizen Signals</span>
+          <span class="nav-badge">1.2k</span>
+        </a>
+        <a class="nav-item" href="#" data-nav-id="district-compare">
+          <span class="nav-icon">🌐</span>
+          <span class="nav-label">District Compare</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar">AK</div>
+        <div>
+          <div class="user-name">Arjun Kumar, MP</div>
+          <div class="user-role">Lok Sabha · Varanasi Constituency</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════════════════
+       MAIN CONTENT
+  ═══════════════════════════════════════ -->
+  <div class="main-content">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="topbar-breadcrumb">
+        <span>JanVikas AI</span>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">AI for Constituency Development Planning</span>
+      </div>
+      <div class="topbar-spacer"></div>
+      <div class="topbar-pulse">
+        <div class="pulse-dot"></div>
+        <span id="pulse-text">Live · 1,247 development signals</span>
+      </div>
+      <div class="topbar-time" id="topbar-time">25 Jun 2026 · Q2 FY26</div>
+      <div class="search-bar">
+        <span style="font-size:12px; color:var(--text-muted);">🔍</span>
+        <input type="text" id="topbar-search" placeholder="Search projects, districts, themes, schemes…">
+        <span style="font-size:10px; font-family:var(--font-mono); color:var(--text-muted); background:rgba(255,255,255,0.05); padding:1px 5px; border-radius:3px;">⌘K</span>
+      </div>
+      <div class="topbar-actions">
+        <div class="icon-btn" title="Notifications">
+          🔔
+          <span class="notif-dot"></span>
+        </div>
+        <div class="icon-btn" title="Settings">⚙️</div>
+        <div class="icon-btn" title="Export" id="export-pdf-btn">📤</div>
+      </div>
+    </div>
+
+    <!-- PAGE CONTENT -->
+    <div class="page">
+
+      <!-- PAGE HEADER -->
+      <div class="page-header">
+        <div class="page-header-row">
+          <div>
+            <div class="page-eyebrow">GDG India · Track 1 · AI for Constituency Development Planning</div>
+            <h1 class="page-title">Constituency Development Command Center</h1>
+            <p class="page-subtitle">
+              AI-synthesized development intelligence across <strong style="color:var(--text-primary)">543 constituencies</strong> ·
+              <strong style="color:var(--text-primary)">28 states</strong> ·
+              <strong style="color:var(--text-primary)">1.4M+ citizen development signals</strong> — updated every 6 hours
+            </p>
+          </div>
+          <div class="header-actions">
+            <button class="btn btn-ghost">⬇ Download Report</button>
+            <button class="btn btn-ghost">📅 FY 2026–27</button>
+            <button class="btn btn-primary" id="run-analysis-btn">✨ Run AI Analysis</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI PRIORITY ALERT -->
+      <div class="priority-alert">
+        <div class="alert-badge">🧠 Top Recommended Project</div>
+        <div class="alert-content">
+          <div class="alert-headline">Priority #1: Rural Drinking Water Network · Bundelkhand Region, UP · Priority Score: 9.4 / 10</div>
+          <div class="alert-detail">
+            <strong>Population Affected: 4.2M</strong> across 6 districts · Demand Growth: <strong>+340% (72h)</strong> ·
+            Infrastructure Deficit: <strong>−63% below national norm</strong> · AI Confidence: <strong>94%</strong> ·
+            Budget: <strong>₹847 Cr</strong> · Fund Source: <strong>Jal Jeevan Mission Q3 window — closes in 38 days</strong>
+          </div>
+        </div>
+        <button class="alert-action" id="alert-action-btn">View Full Plan →</button>
+      </div>
+
+      <!-- KPI CARDS -->
+      <div class="kpi-grid">
+        <!-- KPI 1 -->
+        <div class="kpi-card c-amber">
+          <div class="kpi-header">
+            <div class="kpi-icon-wrap">📍</div>
+            <div class="kpi-trend up">▲ 12%</div>
+          </div>
+          <div class="kpi-value">47</div>
+          <div class="kpi-label">Active Demand Hotspots</div>
+          <div class="kpi-sparkline">
+            <div class="spark-bar" style="height:35%"></div>
+            <div class="spark-bar" style="height:50%"></div>
+            <div class="spark-bar" style="height:40%"></div>
+            <div class="spark-bar" style="height:65%"></div>
+            <div class="spark-bar" style="height:55%"></div>
+            <div class="spark-bar" style="height:70%"></div>
+            <div class="spark-bar active" style="height:85%"></div>
+          </div>
+        </div>
+
+        <!-- KPI 2 -->
+        <div class="kpi-card c-crimson">
+          <div class="kpi-header">
+            <div class="kpi-icon-wrap">📬</div>
+            <div class="kpi-trend down">▲ 8%</div>
+          </div>
+          <div class="kpi-value">1.2k</div>
+          <div class="kpi-label">Development Suggestions (24h)</div>
+          <div class="kpi-sparkline">
+            <div class="spark-bar" style="height:45%"></div>
+            <div class="spark-bar" style="height:60%"></div>
+            <div class="spark-bar" style="height:75%"></div>
+            <div class="spark-bar" style="height:50%"></div>
+            <div class="spark-bar" style="height:80%"></div>
+            <div class="spark-bar" style="height:65%"></div>
+            <div class="spark-bar active" style="height:90%"></div>
+          </div>
+        </div>
+
+        <!-- KPI 3 -->
+        <div class="kpi-card c-emerald">
+          <div class="kpi-header">
+            <div class="kpi-icon-wrap">✅</div>
+            <div class="kpi-trend up">▲ 3</div>
+          </div>
+          <div class="kpi-value">23</div>
+          <div class="kpi-label">Development Projects Approved (Qtr)</div>
+          <div class="kpi-sparkline">
+            <div class="spark-bar" style="height:30%"></div>
+            <div class="spark-bar" style="height:45%"></div>
+            <div class="spark-bar" style="height:60%"></div>
+            <div class="spark-bar" style="height:50%"></div>
+            <div class="spark-bar" style="height:70%"></div>
+            <div class="spark-bar" style="height:75%"></div>
+            <div class="spark-bar active" style="height:80%"></div>
+          </div>
+        </div>
+
+        <!-- KPI 4 -->
+        <div class="kpi-card c-indigo">
+          <div class="kpi-header">
+            <div class="kpi-icon-wrap">🏗</div>
+            <div class="kpi-trend flat">→ 0%</div>
+          </div>
+          <div class="kpi-value">₹4.2k</div>
+          <div class="kpi-label">Cr. Capital Works Analyzed</div>
+          <div class="kpi-sparkline">
+            <div class="spark-bar" style="height:55%"></div>
+            <div class="spark-bar" style="height:65%"></div>
+            <div class="spark-bar" style="height:60%"></div>
+            <div class="spark-bar" style="height:75%"></div>
+            <div class="spark-bar" style="height:80%"></div>
+            <div class="spark-bar" style="height:70%"></div>
+            <div class="spark-bar active" style="height:85%"></div>
+          </div>
+        </div>
+
+        <!-- KPI 5 -->
+        <div class="kpi-card c-sky">
+          <div class="kpi-header">
+            <div class="kpi-icon-wrap">🧠</div>
+            <div class="kpi-trend up">▲ AI</div>
+          </div>
+          <div class="kpi-value">94%</div>
+          <div class="kpi-label">Avg. AI Confidence Score</div>
+          <div class="kpi-sparkline">
+            <div class="spark-bar" style="height:80%"></div>
+            <div class="spark-bar" style="height:85%"></div>
+            <div class="spark-bar" style="height:78%"></div>
+            <div class="spark-bar" style="height:90%"></div>
+            <div class="spark-bar" style="height:88%"></div>
+            <div class="spark-bar" style="height:92%"></div>
+            <div class="spark-bar active" style="height:95%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN DASHBOARD GRID -->
+      <div class="dashboard-grid">
+
+        <!-- INDIA HEATMAP -->
+        <div class="panel heatmap-panel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <div class="panel-eyebrow">Geospatial Intelligence · Citizen Demand Concentration</div>
+              <div class="panel-title">Development Need Heatmap — India</div>
+            </div>
+            <div class="panel-actions">
+              <button class="pill-btn active">Demand</button>
+              <button class="pill-btn inactive">Infra Gap</button>
+              <button class="pill-btn inactive">Funds</button>
+            </div>
+          </div>
+          <div class="heatmap-container">
+            <div class="india-map-placeholder">
+              <div id="jv-map" style="width:100%; height:100%; border-radius:var(--r-lg);"></div>
+            </div>
+            <div class="map-legend">
+              <div class="legend-item">
+                <div class="legend-dot" style="background:var(--crimson-500); box-shadow:0 0 6px var(--crimson-500);"></div>
+                Critical
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot" style="background:var(--amber-500); box-shadow:0 0 6px var(--amber-500);"></div>
+                High Demand
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot" style="background:var(--indigo-500); box-shadow:0 0 6px var(--indigo-500);"></div>
+                Moderate
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot" style="background:var(--emerald-500);"></div>
+                Well Served
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DEVELOPMENT PRIORITY ENGINE -->
+        <div class="panel priority-panel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <div class="panel-eyebrow">Development Priority Engine · 7-Factor AI Score · Gemini-Ranked</div>
+              <div class="panel-title">Recommended Projects — Priority Score Breakdown</div>
+            </div>
+            <div class="panel-actions">
+              <button class="pill-btn inactive">Filter</button>
+              <button class="pill-btn active">All Sectors</button>
+            </div>
+          </div>
+          <div class="priority-table">
+            <div style="padding:0 0 10px; display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+              <span style="font-size:9px; font-family:var(--font-mono); color:var(--text-muted);">Score factors →</span>
+              <span style="font-size:9px; font-family:var(--font-mono); color:var(--sky-400); background:rgba(56,189,248,0.08); padding:1px 5px; border-radius:3px;">Demand 30%</span>
+              <span style="font-size:9px; font-family:var(--font-mono); color:var(--crimson-400); background:rgba(239,68,68,0.08); padding:1px 5px; border-radius:3px;">Deficit 25%</span>
+              <span style="font-size:9px; font-family:var(--font-mono); color:var(--emerald-400); background:rgba(16,185,129,0.08); padding:1px 5px; border-radius:3px;">Population 20%</span>
+              <span style="font-size:9px; font-family:var(--font-mono); color:var(--amber-400); background:rgba(245,158,11,0.08); padding:1px 5px; border-radius:3px;">Plan Align 15%</span>
+              <span style="font-size:9px; font-family:var(--font-mono); color:var(--violet-400); background:rgba(168,85,247,0.08); padding:1px 5px; border-radius:3px;">Strategic 10%</span>
+            </div>
+            <table class="ptable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Recommended Project</th>
+                  <th>Theme</th>
+                  <th>Priority Score</th>
+                  <th>Population Impact</th>
+                </tr>
+              </thead>
+              <tbody id="priority-tbody">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- AI INSIGHT PANEL -->
+        <div class="panel ai-panel">
+          <div class="ai-header-accent"></div>
+          <div class="ai-panel-inner">
+            <div class="panel-eyebrow" style="margin-bottom:10px;">AI Recommendations Engine · MP Decision Support</div>
+            <div class="ai-status-bar">
+              <div class="ai-brain-icon">🧠</div>
+              <div class="ai-status-text">JanVikas AI · Analysing <span id="signal-count">1,247</span> development signals</div>
+              <div class="ai-active-tag">LIVE</div>
+            </div>
+            <div class="insight-list" id="insight-list">
+              <!-- Rendered by JS -->
+            </div>
+            <!-- GOVERNANCE COPILOT -->
+            <div class="governance-copilot">
+              <div class="copilot-title">🤖 MP Decision Assistant · Governance Copilot</div>
+              <div class="copilot-prompt">
+                "Which development project should I recommend to the Finance Committee this week?"
+              </div>
+              <div class="copilot-response">
+                Prioritise <strong>Rural Drinking Water Network — Bundelkhand</strong>. It scores highest on all five dimensions: citizen demand (847 signals), infrastructure deficit (−63%), population impact (4.2M), JJM fund window closing in <strong>38 days</strong>, and 94% AI confidence. No other project offers this combination of urgency, readiness, and scale. Second-most urgent is the <strong>PHC Expansion in Bihar</strong> — recommend bundling both for a single Finance Committee submission.
+              </div>
+              <div class="copilot-tags">
+                <span class="tag tag-water">₹847 Cr · Water</span>
+                <span class="tag tag-health">₹420 Cr · Health</span>
+                <span class="tag tag-edu">JJM + NHM Eligible</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CITIZEN INTELLIGENCE -->
+        <div class="panel signals-panel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <div class="panel-eyebrow">Citizen Intelligence · Multilingual Development Input Network</div>
+              <div class="panel-title">Omnichannel Development Proposals — Gemini AI Processed</div>
+            </div>
+            <div class="panel-actions">
+              <button class="pill-btn active">All</button>
+              <button class="pill-btn inactive">High Impact</button>
+              <button class="pill-btn inactive">New</button>
+            </div>
+          </div>
+
+          <!-- AI LANGUAGE PIPELINE -->
+          <div class="ai-workflow-strip">
+            <div class="ai-workflow-pipe">
+              <div class="ai-pipe-step">
+                <div class="ai-pipe-node active">🎤</div>
+                <div class="ai-pipe-label">Citizen Input</div>
+              </div>
+              <div class="ai-pipe-arrow">→</div>
+              <div class="ai-pipe-step">
+                <div class="ai-pipe-node gemini">
+                  🔊
+                  <div class="gemini-badge">G</div>
+                </div>
+                <div class="ai-pipe-label">Gemini STT · 22 Languages</div>
+              </div>
+              <div class="ai-pipe-arrow">→</div>
+              <div class="ai-pipe-step">
+                <div class="ai-pipe-node gemini">
+                  🌐
+                  <div class="gemini-badge">G</div>
+                </div>
+                <div class="ai-pipe-label">AI Translation · English</div>
+              </div>
+              <div class="ai-pipe-arrow">→</div>
+              <div class="ai-pipe-step">
+                <div class="ai-pipe-node active">🔬</div>
+                <div class="ai-pipe-label">NLP Cluster · Theme</div>
+              </div>
+              <div class="ai-pipe-arrow">→</div>
+              <div class="ai-pipe-step">
+                <div class="ai-pipe-node gemini">
+                  🧩
+                  <div class="gemini-badge">G</div>
+                </div>
+                <div class="ai-pipe-label">Evidence Fusion · 7 Sources</div>
+              </div>
+              <div class="ai-pipe-arrow">→</div>
+              <div class="ai-pipe-step">
+                <div class="ai-pipe-node" style="background:linear-gradient(135deg,rgba(245,158,11,0.2),rgba(239,68,68,0.15)); border-color:rgba(245,158,11,0.4);">⚡</div>
+                <div class="ai-pipe-label">Priority Engine</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- MULTILINGUAL SIGNAL CARDS -->
+          <div style="padding:0 20px 20px; display:flex; flex-direction:column; gap:0;">
+
+            <div class="signal-item-v2">
+              <div class="signal-original">
+                <div class="signal-orig-label">Original · Telugu</div>
+                <div class="signal-orig-text">"మా గ్రామంలో తాగునీటి సమస్య ఉంది. పిల్లలు స్కూలుకు వెళ్ళలేకపోతున్నారు."</div>
+              </div>
+              <div class="signal-translated">
+                <div class="signal-trans-label"><span>🔄</span> Gemini Translation · English</div>
+                <div class="signal-trans-text">Development Need: Rural drinking water infrastructure required — children unable to attend school due to 8km daily water-fetching burden.</div>
+              </div>
+              <div class="signal-meta-row">
+                <span class="sig-tag sig-tag-lang">Telugu</span>
+                <span class="sig-tag sig-tag-theme">Water Infrastructure</span>
+                <span class="sig-tag sig-tag-cluster">Water-Cluster-07</span>
+                <span class="sig-tag sig-tag-source">📱 WhatsApp Voice</span>
+                <span class="sig-tag sig-tag-impact">Pop: 4.2M</span>
+                <span class="sig-tag sig-tag-contrib">Contribution: HIGH</span>
+                <span style="margin-left:auto; font-size:9px; color:var(--text-muted); font-family:var(--font-mono);">📍 Tikamgarh, UP · 47 min ago</span>
+              </div>
+            </div>
+
+            <div class="signal-item-v2">
+              <div class="signal-original">
+                <div class="signal-orig-label">Original · Hindi</div>
+                <div class="signal-orig-text">"हमारे ब्लॉक में कोई PHC नहीं है। नज़दीकी अस्पताल 45 किलोमीटर दूर है।"</div>
+              </div>
+              <div class="signal-translated">
+                <div class="signal-trans-label"><span>🔄</span> Gemini Translation · English</div>
+                <div class="signal-trans-text">Development Need: Primary Health Centre construction — no medical facility in block, nearest hospital 45km away, home deliveries occurring.</div>
+              </div>
+              <div class="signal-meta-row">
+                <span class="sig-tag sig-tag-lang">Hindi</span>
+                <span class="sig-tag sig-tag-theme">Healthcare Access</span>
+                <span class="sig-tag sig-tag-cluster">Health-Cluster-03</span>
+                <span class="sig-tag sig-tag-source">🖥 MyGov Portal</span>
+                <span class="sig-tag sig-tag-impact">Pop: 2.8M</span>
+                <span class="sig-tag sig-tag-contrib">Contribution: HIGH</span>
+                <span style="margin-left:auto; font-size:9px; color:var(--text-muted); font-family:var(--font-mono);">📍 Gaya, Bihar · 2h ago</span>
+              </div>
+            </div>
+
+            <div class="signal-item-v2">
+              <div class="signal-original">
+                <div class="signal-orig-label">Original · Odia</div>
+                <div class="signal-orig-text">"ଆମ ଗ୍ରାମ ବର୍ଷା ଋତుରେ ବିଚ୍ଛିନ୍ନ ହୋଇଯାଏ। ରାସ୍ତା ଦରକାର।"</div>
+              </div>
+              <div class="signal-translated">
+                <div class="signal-trans-label"><span>🔄</span> Gemini Translation · English</div>
+                <div class="signal-trans-text">Development Need: All-weather road connectivity — village isolated every monsoon, agricultural produce unable to reach market, persistent 5-year infrastructure gap.</div>
+              </div>
+              <div class="signal-meta-row">
+                <span class="sig-tag sig-tag-lang">Odia</span>
+                <span class="sig-tag sig-tag-theme">Road Connectivity</span>
+                <span class="sig-tag sig-tag-cluster">Roads-Cluster-11</span>
+                <span class="sig-tag sig-tag-source">🐦 Social Media</span>
+                <span class="sig-tag sig-tag-impact">Pop: 1.1M</span>
+                <span class="sig-tag sig-tag-contrib">Contribution: MED</span>
+                <span style="margin-left:auto; font-size:9px; color:var(--text-muted); font-family:var(--font-mono);">📍 Koraput, Odisha · 4h ago</span>
+              </div>
+            </div>
+
+            <div class="signal-item-v2">
+              <div class="signal-original">
+                <div class="signal-orig-label">Original · Rajasthani</div>
+                <div class="signal-orig-text">"दो साल पैहले सोलर पेनल मिल्या हा, पण लगाया ई कोनी।"</div>
+              </div>
+              <div class="signal-translated">
+                <div class="signal-trans-label"><span>🔄</span> Gemini Translation · English</div>
+                <div class="signal-trans-text">Development Need: Solar electrification implementation — panels sanctioned 2 years ago, never installed, children studying without electricity.</div>
+              </div>
+              <div class="signal-meta-row">
+                <span class="sig-tag sig-tag-lang">Rajasthani</span>
+                <span class="sig-tag sig-tag-theme">Energy Access</span>
+                <span class="sig-tag sig-tag-cluster">Energy-Cluster-12</span>
+                <span class="sig-tag sig-tag-source">🏛 Gram Sabha</span>
+                <span class="sig-tag sig-tag-impact">Pop: 640k</span>
+                <span class="sig-tag sig-tag-contrib">Contribution: MED</span>
+                <span style="margin-left:auto; font-size:9px; color:var(--text-muted); font-family:var(--font-mono);">📍 Barmer, Rajasthan · 6h ago</span>
+              </div>
+            </div>
+
+            <div class="signal-item-v2" style="border-color:rgba(16,185,129,0.2);">
+              <div class="signal-original" style="border-bottom-color:rgba(16,185,129,0.08);">
+                <div class="signal-orig-label">Outcome Report · Bengali</div>
+                <div class="signal-orig-text">"নূতন রাস্তা হওয়ার পর অ্যাম্বুলেন্স আসতে পারছে। বাজারেও যাওয়া সহজ হয়েছে।"</div>
+              </div>
+              <div class="signal-translated" style="border-bottom-color:rgba(16,185,129,0.08);">
+                <div class="signal-trans-label" style="color:var(--emerald-400);"><span>✅</span> Validated Impact · English</div>
+                <div class="signal-trans-text">Development Outcome: PMGSY road project delivered measurable impact — ambulance access restored, market connectivity improved for entire village cluster.</div>
+              </div>
+              <div class="signal-meta-row">
+                <span class="sig-tag sig-tag-lang">Bengali</span>
+                <span class="sig-tag sig-tag-theme">Road Connectivity</span>
+                <span class="sig-tag sig-tag-cluster">Roads-Cluster-04</span>
+                <span class="sig-tag sig-tag-source">📘 Facebook</span>
+                <span class="sig-tag" style="background:rgba(16,185,129,0.12); color:var(--emerald-400); border:1px solid rgba(16,185,129,0.2);">OUTCOME VALIDATED</span>
+                <span style="margin-left:auto; font-size:9px; color:var(--text-muted); font-family:var(--font-mono);">📍 Kanksa, WB · 1d ago</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div><!-- end dashboard-grid -->
+
+      <!-- EVIDENCE FUSION ENGINE -->
+      <div class="fusion-section">
+        <div class="fusion-panel">
+          <div class="fusion-header">
+            <div>
+              <div style="font-size:9px; font-family:var(--font-mono); color:var(--indigo-400); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:4px;">AI Intelligence Architecture · Multi-Source Data Fusion</div>
+              <div style="font-size:14px; font-weight:700; color:var(--text-primary); font-family:var(--font-display);">Evidence Fusion Engine</div>
+              <div style="font-size:11px; color:var(--text-tertiary); margin-top:3px;">AI combines multiple structured and unstructured data sources before generating development recommendations. Citizen suggestions are one of seven inputs.</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+              <div style="font-size:9px; font-family:var(--font-mono); color:var(--emerald-400); background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.2); padding:4px 10px; border-radius:4px;">7 Sources Active</div>
+              <button class="btn btn-ghost" style="font-size:11px;">⚙️ Configure</button>
+            </div>
+          </div>
+          <!-- SOURCE CARDS -->
+          <div class="fusion-sources">
+            <div class="fusion-source-card" style="--fsc-color:var(--sky-500);">
+              <div class="fsc-icon">📡</div>
+              <div class="fsc-name">Citizen Suggestions</div>
+              <div class="fsc-sub">Voice · Text · Photos · WhatsApp · MyGov · Gram Sabha</div>
+              <div style="margin-top:4px; font-size:9px; font-family:var(--font-mono); color:var(--sky-400);">14,562 inputs</div>
+            </div>
+            <div class="fusion-source-card" style="--fsc-color:var(--violet-500);">
+              <div class="fsc-icon">👥</div>
+              <div class="fsc-name">Demographic Data</div>
+              <div class="fsc-sub">Census 2021 · SECC · Population Density · Age Profiles</div>
+              <div style="margin-top:4px; font-size:9px; font-family:var(--font-mono); color:var(--violet-400);">NIC · MOSPI</div>
+            </div>
+            <div class="fusion-source-card" style="--fsc-color:var(--amber-500);">
+              <div class="fsc-icon">🏗</div>
+              <div class="fsc-name">Infrastructure Inventory</div>
+              <div class="fsc-sub">Roads · Schools · PHCs · Water · Power · Sanitation</div>
+              <div style="margin-top:4px; font-size:9px; font-family:var(--font-mono); color:var(--amber-400);">Ministry APIs</div>
+            </div>
+            <div class="fusion-source-card" style="--fsc-color:var(--emerald-500);">
+              <div class="fsc-icon">📋</div>
+              <div class="fsc-name">Local Dev Plans</div>
+              <div class="fsc-sub">District DPRs · State Plans · Urban Local Body Plans</div>
+              <div style="margin-top:4px; font-size:9px; font-family:var(--font-mono); color:var(--emerald-400);">State Govts</div>
+            </div>
+            <div class="fusion-source-card" style="--fsc-color:var(--indigo-500);">
+              <div class="fsc-icon">💰</div>
+              <div class="fsc-name">Govt Schemes</div>
+              <div class="fsc-sub">JJM · NHM · PMGSY · Smart Cities · MGNREGS · PM Awas</div>
+              <div style="margin-top:4px; font-size:9px; font-family:var(--font-mono); color:var(--indigo-400);">Union Budget</div>
+            </div>
+            <div class="fusion-source-card" style="--fsc-color:var(--crimson-500);">
+              <div class="fsc-icon">📊</div>
+              <div class="fsc-name">Public Datasets</div>
+              <div class="fsc-sub">NITI Aayog SDG Index · Outcome Monitoring · OpenGov</div>
+              <div style="margin-top:4px; font-size:9px; font-family:var(--font-mono); color:var(--crimson-400);">data.gov.in</div>
+            </div>
+            <div class="fusion-source-card" style="--fsc-color:#4285F4;">
+              <div class="fsc-icon">🛰</div>
+              <div class="fsc-name">Satellite Imagery</div>
+              <div class="fsc-sub">NRSC · ISRO · Road/Water Coverage · Land Use Maps</div>
+              <div style="margin-top:4px; font-size:9px; font-family:var(--font-mono); color:#7DB3F7;">NRSC · ISRO</div>
+            </div>
+          </div>
+          <!-- FUSION OUTPUT -->
+          <div style="display:flex; flex-direction:column; align-items:center; padding:0 24px 20px;">
+            <div style="display:flex; align-items:center; gap:0; width:100%; margin-bottom:8px;">
+              <div style="flex:1; height:1px; background:linear-gradient(90deg,transparent,var(--indigo-500)); opacity:0.3;"></div>
+              <div style="padding:0 16px; font-size:18px; color:var(--indigo-400);">↓</div>
+              <div style="flex:1; height:1px; background:linear-gradient(90deg,var(--indigo-500),transparent); opacity:0.3;"></div>
+            </div>
+            <div class="fusion-center-node" style="width:100%; max-width:600px; justify-content:center;">
+              <div style="font-size:22px;">🧠</div>
+              <div>
+                <div style="font-size:12px; font-weight:700; color:var(--text-primary); font-family:var(--font-display);">Unified Development Intelligence</div>
+                <div style="font-size:10px; color:var(--indigo-300); font-family:var(--font-mono); margin-top:2px;">JanVikas AI Priority Engine · Gemini-Powered · 7-Source Fusion · Confidence: 94%</div>
+              </div>
+              <div style="margin-left:auto; display:flex; gap:6px;">
+                <span style="font-size:9px; background:rgba(16,185,129,0.15); color:var(--emerald-400); padding:3px 8px; border-radius:4px; font-family:var(--font-mono); border:1px solid rgba(16,185,129,0.25);">LIVE</span>
+                <span style="font-size:9px; background:rgba(99,102,241,0.15); color:var(--indigo-300); padding:3px 8px; border-radius:4px; font-family:var(--font-mono); border:1px solid rgba(99,102,241,0.25);">94% CONF.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ANALYTICS BAND -->
+      <div class="analytics-band">
+
+        <!-- ISSUE CLUSTERS -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <div class="panel-eyebrow">AI Theme Detection · NLP-Clustered · 14,562 Suggestions Processed</div>
+              <div class="panel-title">Development Themes by Demand Volume</div>
+            </div>
+          </div>
+          <div class="cluster-grid" id="cluster-grid">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- INFRASTRUCTURE INTELLIGENCE -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <div class="panel-eyebrow">Infrastructure Intelligence · Citizen Demand vs. Existing Coverage</div>
+              <div class="panel-title">Infrastructure Deficit Index</div>
+            </div>
+          </div>
+          <div class="infra-gaps" style="padding-top:4px;" id="infra-gaps">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- DEMAND HOTSPOTS TABLE -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <div class="panel-eyebrow">Development Demand Hotspots · High-Need Districts</div>
+              <div class="panel-title">Emerging Development Need Concentration</div>
+            </div>
+          </div>
+          <div class="hotspot-table">
+            <div class="hs-table">
+              <div class="hs-row" style="border-bottom:1px solid var(--border-subtle); padding-bottom:8px; margin-bottom:4px;">
+                <div class="hs-rank" style="font-size:9px; letter-spacing:0.5px;">RK</div>
+                <div class="hs-location"><span style="font-size:9px; color:var(--text-tertiary); font-family:var(--font-mono); letter-spacing:0.5px;">DISTRICT · STATE</span></div>
+                <div class="hs-heat" style="font-size:9px; color:var(--text-tertiary); font-family:var(--font-mono);">HEAT</div>
+                <div class="hs-score" style="font-size:9px; color:var(--text-tertiary); font-family:var(--font-mono);">SCR</div>
+              </div>
+              <div id="hotspot-rows">
+                <!-- Rendered by JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end analytics-band -->
+
+      <!-- PROJECT COMPARISON ENGINE -->
+      <div class="analytics-band" style="margin-bottom:24px;">
+        <div class="panel" style="grid-column:1 / 3;">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <div class="panel-eyebrow">Project Comparison Engine · AI-Powered · Addresses Official Challenge Requirement</div>
+              <div class="panel-title">Compare Competing Development Proposals — Why One Ranks Higher</div>
+            </div>
+            <div class="panel-actions">
+              <button class="pill-btn active">Head-to-Head</button>
+              <button class="pill-btn inactive">Multi-Project</button>
+            </div>
+          </div>
+          <div style="padding:0 20px 20px; display:grid; grid-template-columns:1fr auto 1fr; gap:16px; align-items:start;">
+            <!-- Project A -->
+            <div style="background:var(--bg-elevated); border:1px solid rgba(56,189,248,0.25); border-radius:var(--r-md); padding:14px;">
+              <div style="font-size:9px; font-family:var(--font-mono); color:var(--sky-400); letter-spacing:1px; margin-bottom:6px;">PROJECT A</div>
+              <div style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:10px; font-family:var(--font-display);">Rural Drinking Water Network</div>
+              <div style="display:flex; flex-direction:column; gap:6px;">
+                <div style="display:flex; justify-content:space-between; font-size:11px;"><span style="color:var(--text-tertiary);">Citizen Demand</span><span style="color:var(--sky-400); font-family:var(--font-mono);">4,821 signals</span></div>
+                <div style="display:flex; justify-content:space-between; font-size:11px;"><span style="color:var(--text-tertiary);">Population Impact</span><span style="color:var(--sky-400); font-family:var(--font-mono);">4.2M citizens</span></div>
+                <div style="display:flex; justify-content:space-between; font-size:11px;"><span style="color:var(--text-tertiary);">Infrastructure Deficit</span><span style="color:var(--crimson-400); font-family:var(--font-mono);">−63% coverage</span></div>
+                <div style="display:flex; justify-content:space-between; font-size:11px;"><span style="color:var(--text-tertiary);">Plan Alignment</span><span style="color:var(--emerald-400); font-family:var(--font-mono);">JJM Eligible ✓</span></div>
+                <div style="display:flex; justify-content:space-between; font-size:11px;"><span style="color:var(--text-tertiary);">Priority Score</span><span style="color:var(--sky-300); font-weight:700; font-family:var(--font-mono);">9.4 / 10</span></div>
+              </div>
+            </div>
+            <!-- VS Divider -->
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding-top:20px;">
+              <div style="font-size:16px; font-weight:800; font-family:var(--font-display); color:var(--text-muted);">VS</div>
+              <div style="width:1px; height:60px; background:var(--border-subtle);"></div>
+              <div style="background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.3); border-radius:var(--r-sm); padding:4px 8px; font-size:9px; color:var(--indigo-300); font-family:var(--font-mono);">AI VERDICT</div>
+              <div style="width:1px; height:60px; background:var(--border-subtle);"></div>
+            </div>
+            <!-- Project B -->
+            <div style="background:var(--bg-elevated); border:1px solid var(--border-glass); border-radius:var(--r-md); padding:14px; opacity:0.8;">
+              <div style="font-size:9px; font-family:var(--font-mono); color:var(--text-tertiary); letter-spacing:1px; margin-bottom:6px;">PROJECT B</div>
+              <div style="font-size:13px; font-weight:600; color:var(--text-secondary); margin-bottom:10px; font-family:var(--font-display);">Vocational Training Centre</div>
+              <div style="display:flex; flex-direction:column; gap:6px;">
+                <div style="display:flex; justify-content:space-between; font-size:11px;"><span style="color:var(--text-tertiary);">Citizen Demand</span><span style="color:var(--text-secondary); font-family:var(--font-mono);">312 suggestions</span></div>
+                <div style="display:flex; justify-content:space-between; font-size:11px;"><span style="color:var(--text-tertiary);">Population Impact</span><span style="color:var(--text-secondary); font-family:var(--font-mono);">0.4M citizens</span></div>
+                <div style="display:flex; justify-content:space-between; font-size:11px;"><span style="color:var(--text-tertiary);">Infrastructure Deficit</span><span style="color:var(--amber-400); font-family:var(--font-mono);">−22% coverage</span></div>
+                <div style="display:flex; justify-content:space-between; font-size:11px;"><span style="color:var(--text-tertiary);">Plan Alignment</span><span style="color:var(--text-tertiary); font-family:var(--font-mono);">PMKVY — Partial</span></div>
+                <div style="display:flex; justify-content:space-between; font-size:11px;"><span style="color:var(--text-tertiary);">Priority Score</span><span style="color:var(--text-secondary); font-weight:700; font-family:var(--font-mono);">5.1 / 10</span></div>
+              </div>
+            </div>
+          </div>
+          <!-- AI Verdict -->
+          <div style="margin:0 20px 20px; background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(56,189,248,0.06)); border:1px solid rgba(99,102,241,0.25); border-radius:var(--r-md); padding:12px 16px;">
+            <div style="font-size:10px; font-family:var(--font-mono); color:var(--indigo-400); margin-bottom:6px; letter-spacing:0.8px;">🧠 AI EXPLAINS THE RANKING</div>
+            <div style="font-size:12px; color:var(--text-secondary); line-height:1.6;">Project A (Rural Water Network) ranks <strong style="color:var(--sky-300);">4.3 points higher</strong> because it addresses a structurally unmet need at 15× the demand volume and serves 10× the population. The infrastructure deficit is critical (−63% vs −22%). A vocational centre is a worthwhile future investment but cannot be prioritised ahead of acute, life-affecting water scarcity at this demand intensity. Recommend Water Network now; schedule Vocational Centre for Q4 planning cycle.</div>
+          </div>
+        </div>
+
+        <!-- DATA SOURCES PANEL -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <div class="panel-eyebrow">Multi-Source Intelligence · Not Citizen Signals Alone</div>
+              <div class="panel-title">Data Integration Sources</div>
+            </div>
+          </div>
+          <div style="padding:0 18px 18px; display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:var(--bg-elevated); border-radius:var(--r-sm); border:1px solid var(--border-glass);">
+              <span style="font-size:14px;">📡</span>
+              <div><div style="font-size:11px; font-weight:500; color:var(--text-primary);">Citizen Development Suggestions</div><div style="font-size:10px; color:var(--text-tertiary); font-family:var(--font-mono);">WhatsApp · MyGov · Social Media · Gram Sabha</div></div>
+              <span style="margin-left:auto; font-size:9px; background:rgba(16,185,129,0.15); color:var(--emerald-400); padding:2px 6px; border-radius:4px; font-family:var(--font-mono);">LIVE</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:var(--bg-elevated); border-radius:var(--r-sm); border:1px solid var(--border-glass);">
+              <span style="font-size:14px;">👥</span>
+              <div><div style="font-size:11px; font-weight:500; color:var(--text-primary);">Demographic Data</div><div style="font-size:10px; color:var(--text-tertiary); font-family:var(--font-mono);">Census 2021 · SECC · Population Projections</div></div>
+              <span style="margin-left:auto; font-size:9px; background:rgba(99,102,241,0.15); color:var(--indigo-400); padding:2px 6px; border-radius:4px; font-family:var(--font-mono);">NIC</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:var(--bg-elevated); border-radius:var(--r-sm); border:1px solid var(--border-glass);">
+              <span style="font-size:14px;">🏗</span>
+              <div><div style="font-size:11px; font-weight:500; color:var(--text-primary);">Infrastructure Coverage Data</div><div style="font-size:10px; color:var(--text-tertiary); font-family:var(--font-mono);">Ministry APIs · NITI Aayog · SDG Index</div></div>
+              <span style="margin-left:auto; font-size:9px; background:rgba(245,158,11,0.15); color:var(--amber-400); padding:2px 6px; border-radius:4px; font-family:var(--font-mono);">GOI</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:var(--bg-elevated); border-radius:var(--r-sm); border:1px solid var(--border-glass);">
+              <span style="font-size:14px;">📋</span>
+              <div><div style="font-size:11px; font-weight:500; color:var(--text-primary);">Local Development Plans</div><div style="font-size:10px; color:var(--text-tertiary); font-family:var(--font-mono);">District DPRs · State Plan Documents</div></div>
+              <span style="margin-left:auto; font-size:9px; background:rgba(99,102,241,0.15); color:var(--indigo-400); padding:2px 6px; border-radius:4px; font-family:var(--font-mono);">STATE</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:var(--bg-elevated); border-radius:var(--r-sm); border:1px solid var(--border-glass);">
+              <span style="font-size:14px;">🛰</span>
+              <div><div style="font-size:11px; font-weight:500; color:var(--text-primary);">Satellite &amp; Geospatial Data</div><div style="font-size:10px; color:var(--text-tertiary); font-family:var(--font-mono);">NRSC · ISRO · Road/Water Coverage Mapping</div></div>
+              <span style="margin-left:auto; font-size:9px; background:rgba(56,189,248,0.15); color:var(--sky-400); padding:2px 6px; border-radius:4px; font-family:var(--font-mono);">NRSC</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:var(--bg-elevated); border-radius:var(--r-sm); border:1px solid var(--border-glass);">
+              <span style="font-size:14px;">💰</span>
+              <div><div style="font-size:11px; font-weight:500; color:var(--text-primary);">Government Scheme Eligibility</div><div style="font-size:10px; color:var(--text-tertiary); font-family:var(--font-mono);">JJM · NHM · PMGSY · Smart Cities · MGNREGS</div></div>
+              <span style="margin-left:auto; font-size:9px; background:rgba(16,185,129,0.15); color:var(--emerald-400); padding:2px 6px; border-radius:4px; font-family:var(--font-mono);">SCHEMES</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXECUTIVE DEVELOPMENT BRIEF -->
+      <div class="brief-section">
+        <div class="brief-panel glowing-border">
+          <div class="brief-header">
+            <div class="brief-icon-wrap">📋</div>
+            <div class="brief-meta">
+              <div class="brief-title">Executive Development Brief · Q2 FY 2026–27 · AI-Generated Planning Report</div>
+              <div class="brief-subtitle">Constituency Development Intelligence Report · Sources: Citizen Suggestions + Census + Infrastructure Data + Ministry APIs · Generated: 25 Jun 2026, 06:00 IST</div>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-ghost" id="export-brief-pdf">📤 Export PDF</button>
+              <button class="btn btn-ghost">📧 Submit to Ministry</button>
+            </div>
+          </div>
+          <div class="brief-body">
+            <!-- SITUATION ASSESSMENT -->
+            <div class="brief-col">
+              <div class="brief-col-title">📍 Development Situation Assessment</div>
+              <div class="brief-finding"><strong>Critical Gap:</strong> 14 districts across UP, Bihar, and Odisha fall below national development thresholds in 3+ infrastructure categories simultaneously.</div>
+              <div class="brief-finding"><strong>Emerging Trend:</strong> Water infrastructure demand rose 340% in 72 hours in Bundelkhand. Healthcare access deficit in Bihar's Magadh region is structurally worsening against population growth.</div>
+              <div class="brief-finding highlight">✦ AI recommends Q3 FY26 as optimal intervention window — JJM and NHM fund allocations closing, monsoon-budget lockout imminent.</div>
+            </div>
+            <!-- DATA SYNTHESIS -->
+            <div class="brief-col">
+              <div class="brief-col-title">🔬 Multi-Source Data Synthesis</div>
+              <div class="brief-metrics">
+                <div class="brief-metric"><span class="bm-label">Citizen suggestions analyzed</span><span class="bm-val" style="color:var(--indigo-400);">14,562</span></div>
+                <div class="brief-metric"><span class="bm-label">Development themes detected</span><span class="bm-val" style="color:var(--indigo-400);">6 major</span></div>
+                <div class="brief-metric"><span class="bm-label">High-demand hotspot districts</span><span class="bm-val" style="color:var(--crimson-400);">47 districts</span></div>
+                <div class="brief-metric"><span class="bm-label">Total population impacted</span><span class="bm-val" style="color:var(--emerald-400);">12.4M citizens</span></div>
+                <div class="brief-metric"><span class="bm-label">Capital works recommended</span><span class="bm-val" style="color:var(--amber-400);">₹2,847 Cr</span></div>
+                <div class="brief-metric"><span class="bm-label">Active government fund windows</span><span class="bm-val" style="color:var(--emerald-400);">3 open</span></div>
+                <div class="brief-metric"><span class="bm-label">AI model confidence (avg.)</span><span class="bm-val" style="color:var(--indigo-400);">94%</span></div>
+              </div>
+            </div>
+            <!-- PRIORITY METHODOLOGY -->
+            <div class="brief-col">
+              <div class="brief-col-title">⚙️ Priority Score Methodology</div>
+              <div class="brief-finding"><strong>5-Factor AI Scoring:</strong> Citizen Demand (30%) · Infrastructure Deficit (25%) · Population Impact (20%) · Development Plan Alignment (15%) · Strategic Importance (10%).</div>
+              <div class="brief-finding">Projects cross-validated against Census 2021, satellite imagery, ministry scheme eligibility windows, and local development plan data.</div>
+              <div class="brief-finding"><strong>Data Sources:</strong> MyGov · NIC · NRSC Satellite · Census 2021 · Ministry APIs · WhatsApp/Social signals · Gram Sabha records · Public datasets.</div>
+            </div>
+            <!-- RECOMMENDED ACTIONS -->
+            <div class="brief-col" style="background:rgba(99,102,241,0.04);">
+              <div class="brief-col-title">🎯 MP Action Plan — Top Development Works</div>
+              <div class="brief-recommend">
+                <div class="rec-number">3</div>
+                <div class="rec-label">Priority approvals recommended this quarter</div>
+                <div class="rec-item">💧 Rural Drinking Water Network — Bundelkhand, UP · ₹847 Cr · JJM window closes 38 days</div>
+                <div class="rec-item">🏥 PHC Expansion Programme — Gaya, Bihar · ₹420 Cr · NHM emergency allocation ready</div>
+                <div class="rec-item">🛣 PMGSY Phase 2 — Koraput, Odisha · ₹310 Cr · DPR complete, awaiting clearance</div>
+              </div>
+              <button class="brief-generate-btn" id="generate-brief-btn">
+                ✨ Generate Full Development Planning Report
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end .page -->
+
+    <!-- STATUS BAR -->
+    <div class="status-bar">
+      <div class="status-item">
+        <div class="status-dot"></div>
+        AI Engine: Online
+      </div>
+      <div class="status-item">
+        <div class="status-dot"></div>
+        Data feeds: 12/12 active
+      </div>
+      <div class="status-item">
+        <div class="status-dot warn"></div>
+        3 development priorities need MP review
+      </div>
+      <div class="status-item" style="font-family:var(--font-mono); font-size:9px; color:var(--text-muted);">
+        Data: MyGov · NIC · NRSC Satellite · Census 2021 · Ministry APIs · Gram Sabha · WhatsApp/Social signals
+      </div>
+      <div class="status-spacer"></div>
+      <div class="status-gdg-badge">GDG India Hackathon · Track 1 · AI for Constituency Planning</div>
+      <div style="color:var(--text-muted);">v2.0.1</div>
+    </div>
+
+  </div><!-- end .main-content -->
+</div><!-- end .app-shell -->
+
+<!-- GOVERNANCE COPILOT MODAL -->
+<div class="copilot-modal-overlay" id="copilot-modal">
+  <div class="copilot-modal">
+    <div class="copilot-modal-header">
+      <span style="font-size:20px;">🤖</span>
+      <div class="copilot-modal-header-title">Governance Copilot · MP Decision Assistant</div>
+      <button class="copilot-modal-close" id="copilot-modal-close">✕</button>
+    </div>
+    <div class="copilot-chat-area" id="copilot-chat">
+      <!-- Rendered by JS -->
+    </div>
+    <div class="copilot-chips" id="copilot-chips">
+      <!-- Rendered by JS -->
+    </div>
+    <div class="copilot-input-row">
+      <input type="text" class="copilot-input" id="copilot-input" placeholder="Ask about projects, schemes, district data, fund windows…">
+      <button class="copilot-send" id="copilot-send">Send →</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin=""></script>
+<script type="module" src="js/dashboard.js"></script>
+</body>
 </html>
