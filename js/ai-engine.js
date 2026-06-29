@@ -1,11 +1,11 @@
 /**
  * ═══════════════════════════════════════════════════════
  * JanVikas AI — Intelligent Processing Engine
- * Category: AI Processing & Natural Language Interface
  * ═══════════════════════════════════════════════════════
  */
 
 import { Utils } from './utils.js';
+import { StorageEngine } from './firebase.js';
 
 export const AIEngine = {
   /**
@@ -17,62 +17,83 @@ export const AIEngine = {
   async analyzeReport(report) {
     const text = (report.text || '').trim();
     
-    // 1. Attempt Server-Side Gemini API Proxy
-    if (navigator.onLine) {
+    // 1. Attempt Client-Side Direct Gemini API Call if Key Exists
+    const apiKey = localStorage.getItem('gemini_api_key');
+    if (apiKey && navigator.onLine) {
       try {
-        const response = await fetch('/api/analyze-report', {
+        const promptText = `
+You are the JanVikas AI civic intelligence analyst. Your task is to analyze the following citizen complaint / development need from an Indian citizen and return a highly structured JSON response.
+
+Citizen Submission:
+State: ${report.state || ''}
+District: ${report.district || ''}
+Block/City: ${report.city || ''}
+Ward: ${report.ward || ''}
+Text/Speech Input: "${text}"
+
+Analyze the input text/speech and output a valid JSON object matching this exact schema:
+{
+  "lang": "The language of the user input with ISO suffix (e.g. 'English (ISO: en_US)', 'Hindi (ISO: hi_IN)', 'Telugu (ISO: te_IN)', 'Marathi (ISO: mr_IN)', 'Kannada (ISO: kn_IN)', 'Tamil (ISO: ta_IN)', etc.)",
+  "theme": "One of: 'Water Infrastructure', 'Healthcare Access', 'Road Connectivity', 'Energy Access', 'Civic Facilities'",
+  "themeClass": "One of: 'accent-water', 'accent-health', 'accent-edu', 'accent-critical' (accent-critical is for critical issues, accent-water is general, accent-health is for health, accent-edu is for education/civic)",
+  "transcript": "The user input in its original language, cleaned of verbal filler if speech.",
+  "translation": "The direct English translation of the user's input. If the input is already in English, this should match the transcript.",
+  "scheme": "The national or state development scheme that applies to this complaint (e.g. 'Jal Jeevan Mission (JJM)' for Water, 'National Health Mission (NHM)' for Health, 'Pradhan Mantri Gram Sadak Yojana (PMGSY)' for Roads, 'Swachh Bharat Abhiyan (SBA)' for Sanitation/Civic, 'PM-KUSUM / Deen Dayal Upadhyaya Gram Jyoti Yojana' for Energy/Solar)",
+  "urgency": "Format: '🔴 Critical (Score: X.Y/10)' or '🟠 High (Score: X.Y/10)' or '🟡 Moderate (Score: X.Y/10)' based on severity of the issue",
+  "urgencyValue": 6.8,
+  "urgencyClass": "One of: 'accent-critical' (for score >= 8.5), 'accent-health' (for health score >= 7.0), 'accent-water' (for general or moderate score), 'accent-edu' (for general/civic)",
+  "clusterId": "A string ID like 'Water-Cluster-42' or 'Health-Cluster-15' or 'Road-Cluster-31' depending on category and location",
+  "contribution": "A brief priority impact description (e.g. 'HIGH (+1.8 to regional water deficit)' or 'CRITICAL (+2.1 to health accessibility)')",
+  "summary": "A professional 3-sentence summary analyzing the citizen's report, explaining why it was categorized under the chosen theme, citing the location (${report.city || ''}, ${report.district || ''}, ${report.state || ''}), and specifying its priority multiplier in the government database.",
+  "confidence": "Format: 'XX% AI Confidence' where XX is between 85 and 99",
+  "proposals": [
+    {
+      "id": 201,
+      "name": "A realistic, high-impact proposed project name to solve this specific complaint in this block (e.g. 'Rural Drinking Water Network Upgrade' or 'Primary Health Centre Ambulance Unit')",
+      "match": "Format: 'XX% AI Match' where XX is between 80 and 98",
+      "location": "📍 ${report.city || report.district || ''}, ${report.state || ''}",
+      "theme": "The theme selected above",
+      "supports": 1200
+    },
+    {
+      "id": 202,
+      "name": "Another secondary related development proposal in the district",
+      "match": "Format: 'XX% Similarity' where XX is between 40 and 75",
+      "location": "📍 ${report.district || ''}, ${report.state || ''}",
+      "theme": "A related theme",
+      "supports": 450
+    }
+  ]
+}
+
+Only return a valid JSON object. Do not include any markdown backticks (such as \`\`\`json) or any explanation text outside of the JSON. Make sure the JSON is completely valid and parseable.
+`;
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(report)
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: promptText }] }],
+            generationConfig: {
+              responseMimeType: "application/json"
+            }
+          })
         });
-        if (response.ok) {
-          const result = await response.json();
-          // If the result is a CitizenReport from backend, map it to scenario shape
-          if (result && result.aiAnalysis) {
-            const themeClassMap = {
-              'Water Supply': 'accent-water',
-              'Roads & Transport': 'accent-water',
-              'Sanitation & Waste': 'accent-water',
-              'Electricity & Power': 'accent-water',
-              'Safety & Lighting': 'accent-water',
-              'Public Health': 'accent-health',
-              'Education & Facilities': 'accent-edu'
-            };
-            const themeClass = themeClassMap[result.category] || 'accent-water';
-            
-            const urgencyClassMap = {
-              'Critical': 'accent-critical',
-              'High': 'accent-critical',
-              'Medium': 'accent-water',
-              'Low': 'accent-water'
-            };
-            const urgencyClass = urgencyClassMap[result.priority] || 'accent-water';
 
-            const mappedScenario = {
-              lang: result.aiAnalysis.sentiment ? result.aiAnalysis.sentiment.split(' / ')[0] : 'English (ISO: en_US)',
-              theme: result.category || 'Infrastructure Maintenance',
-              themeClass: themeClass,
-              transcript: result.description || '',
-              translation: result.description || '',
-              scheme: result.aiAnalysis.recommendedAction?.includes('PMGSY') ? 'Pradhan Mantri Gram Sadak Yojana (PMGSY)' : (result.category === 'Water Supply' ? 'Jal Jeevan Mission (JJM)' : 'SBA (Swachh Bharat Abhiyan)'),
-              urgency: `${result.priority === 'Critical' ? '🔴 Critical' : (result.priority === 'High' ? '🟠 High' : '🟡 Moderate')} (Score: ${(result.priorityScore / 10).toFixed(1)}/10)`,
-              urgencyValue: result.priorityScore / 10,
-              urgencyClass: urgencyClass,
-              clusterId: result.aiAnalysis.similarityClusterId || 'cluster_general',
-              contribution: result.aiAnalysis.recommendedAction || 'General Contribution',
-              summary: result.aiAnalysis.summary || 'Processed successfully.',
-              confidence: '95% AI Confidence',
-              proposals: [
-                { id: 201, name: `Rural ${result.category || 'Civic'} Network Upgrade`, match: "94% AI Match", location: `📍 ${result.location.city || result.location.district || 'Selected Location'}`, theme: result.category || 'General', supports: 1420 },
-                { id: 202, name: `Regional ${result.category || 'Civic'} Improvement Grid`, match: "65% Similarity", location: `📍 ${result.location.district || 'Local Block'}`, theme: result.category || 'General', supports: 480 }
-              ]
-            };
-            return mappedScenario;
+        if (response.ok) {
+          const data = await response.json();
+          let rawText = data.candidates[0].content.parts[0].text;
+          if (rawText.includes('```')) {
+            rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
           }
-          return result;
+          const parsed = JSON.parse(rawText);
+          console.log("🚀 Direct Gemini 2.5 Flash response successfully parsed:", parsed);
+          return parsed;
+        } else {
+          console.warn(`Gemini API returned status ${response.status}. Defaulting to rule-based client-side engine.`);
         }
       } catch (err) {
-        console.log('Backend API route down or offline. Booting Client-Side High-Fidelity NLP Engine:', err.message);
+        console.warn("Direct Gemini 2.5 Flash query failed. Defaulting to local high-fidelity NLP rules.", err);
       }
     }
 
@@ -205,19 +226,65 @@ export const AIEngine = {
    * @returns {Promise<string>}
    */
   async askCopilot(prompt, history = []) {
-    if (navigator.onLine) {
+    const apiKey = localStorage.getItem('gemini_api_key');
+    if (apiKey && navigator.onLine) {
       try {
-        const response = await fetch('/api/governance-assistant', {
+        // Retrieve signals for database-grounded response
+        let reports = [];
+        try {
+          reports = await StorageEngine.getAll('citizenSignals');
+        } catch (e) {
+          reports = [];
+        }
+
+        const reportContext = reports.length === 0 
+          ? "No citizen signals have been submitted yet in the database." 
+          : JSON.stringify(reports.map(r => ({
+              state: r.state || '',
+              district: r.district || '',
+              city: r.city || '',
+              theme: r.theme || '',
+              description: r.detail || r.text || '',
+              urgency: r.priority || 6.5,
+              supports: r.support || 1,
+              scheme: r.scheme || 'N/A'
+            })));
+
+        const systemPrompt = `
+You are the JanVikas Governance Copilot, an expert administrative and developmental planning AI assistant for Arjun Kumar, Member of Parliament (MP).
+You are grounded in actual, real-time citizen development signals from your constituency database.
+
+Here are the active citizen development signals currently registered in the database:
+${reportContext}
+
+Provide highly precise, professional, and actionable administrative recommendations. Quote exact districts, cities, and schemes when relevant. Break down responses with clean markdown headers and bullet points. Be concise but extremely detailed when discussing budgeting, outlays, or Detailed Project Reports (DPR) requisitions.
+
+User's Query: "${prompt}"
+
+Context of conversational history (previous exchanges in this session):
+${JSON.stringify(history)}
+
+Generate a helpful, grounded, and executive response. Use bullet points and clean typography. Only return the response text (no system labels).
+`;
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: prompt, history })
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: systemPrompt }] }]
+          })
         });
+
         if (response.ok) {
-          const result = await response.json();
-          return result.reply;
+          const data = await response.json();
+          const reply = data.candidates[0].content.parts[0].text;
+          console.log("🚀 Direct Gemini 2.5 Flash Copilot reply successfully generated");
+          return reply;
+        } else {
+          console.warn(`Gemini API returned status ${response.status}. Defaulting to local copilot.`);
         }
       } catch (err) {
-        console.log('Backend Copilot down, fallback to Client-Side AI response.');
+        console.warn("Direct Gemini API Copilot call failed, using local fallback responses:", err);
       }
     }
 
