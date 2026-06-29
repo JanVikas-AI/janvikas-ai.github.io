@@ -16,6 +16,7 @@ export const AIEngine = {
    */
   async analyzeReport(report) {
     const text = (report.text || '').trim();
+    let scenario = null;
     
     // 1. Attempt Client-Side Direct Gemini API Call if Key Exists
     const apiKey = localStorage.getItem('gemini_api_key');
@@ -86,9 +87,8 @@ Only return a valid JSON object. Do not include any markdown backticks (such as 
           if (rawText.includes('```')) {
             rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
           }
-          const parsed = JSON.parse(rawText);
-          console.log("🚀 Direct Gemini 2.5 Flash response successfully parsed:", parsed);
-          return parsed;
+          scenario = JSON.parse(rawText);
+          console.log("🚀 Direct Gemini 2.5 Flash response successfully parsed:", scenario);
         } else {
           console.warn(`Gemini API returned status ${response.status}. Defaulting to rule-based client-side engine.`);
         }
@@ -97,124 +97,152 @@ Only return a valid JSON object. Do not include any markdown backticks (such as 
       }
     }
 
-    // 2. High-Fidelity Client-Side Rule-Based NLP & Gemini Fallback
-    await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate AI processing delay
-    
-    const lowerText = text.toLowerCase();
-    
-    // Default Fallback Scenario (Civic/Infrastructure Maintenance)
-    let scenario = {
-      lang: "English (ISO: en_US)",
-      theme: "Infrastructure Maintenance",
-      themeClass: "accent-water",
-      transcript: text || "Local civic maintenance required for public utilities.",
-      translation: text || "Local civic maintenance required for public utilities.",
-      scheme: "SBA (Swachh Bharat Abhiyan)",
-      urgency: "🟡 Moderate (Score: 6.8/10)",
-      urgencyValue: 6.8,
-      urgencyClass: "accent-water",
-      clusterId: "Civic-Cluster-12",
-      contribution: "MODERATE (+0.6 to maintenance deficit)",
-      summary: "Your submission has been captured. It categorized under general Infrastructure Maintenance and matches local development grids. It has been registered as an active feedback node and scheduled for regional planning review.",
-      confidence: "85% AI Confidence",
-      proposals: [
-        { id: 101, name: "Panchayat Community Hall Renovation", match: "82% AI Match", location: `📍 ${report.city || 'Selected Location'}`, theme: "Civic Facilities", supports: 120 },
-        { id: 102, name: "Public Waste Bin Placements", match: "45% Similarity", location: `📍 ${report.district || 'Local Block'}`, theme: "Sanitation & Waste", supports: 231 }
-      ]
-    };
+    if (!scenario) {
+      // 2. High-Fidelity Client-Side Rule-Based NLP & Gemini Fallback
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate AI processing delay
+      
+      const lowerText = text.toLowerCase();
+      
+      // Default Fallback Scenario (Civic/Infrastructure Maintenance)
+      scenario = {
+        lang: "English (ISO: en_US)",
+        theme: "Infrastructure Maintenance",
+        themeClass: "accent-water",
+        transcript: text || "Local civic maintenance required for public utilities.",
+        translation: text || "Local civic maintenance required for public utilities.",
+        scheme: "SBA (Swachh Bharat Abhiyan)",
+        urgency: "🟡 Moderate (Score: 6.8/10)",
+        urgencyValue: 6.8,
+        urgencyClass: "accent-water",
+        clusterId: "Civic-Cluster-12",
+        contribution: "MODERATE (+0.6 to maintenance deficit)",
+        summary: "Your submission has been captured. It categorized under general Infrastructure Maintenance and matches local development grids. It has been registered as an active feedback node and scheduled for regional planning review.",
+        confidence: "85% AI Confidence",
+        proposals: [
+          { id: 101, name: "Panchayat Community Hall Renovation", match: "82% AI Match", location: `📍 ${report.city || 'Selected Location'}`, theme: "Civic Facilities", supports: 120 },
+          { id: 102, name: "Public Waste Bin Placements", match: "45% Similarity", location: `📍 ${report.district || 'Local Block'}`, theme: "Sanitation & Waste", supports: 231 }
+        ]
+      };
 
-    // Water Pipeline / Drought Scenario
-    if (lowerText.includes('water') || lowerText.includes('drinking') || lowerText.includes('pipeline') || lowerText.includes('well') || lowerText.includes('తాగునీటి') || lowerText.includes('पानी')) {
-      scenario = {
-        lang: lowerText.includes('తాగునీటి') ? "Telugu (ISO: te_IN)" : (lowerText.match(/[\u0900-\u097F]/) ? "Hindi (ISO: hi_IN)" : "English (ISO: en_US)"),
-        theme: "Water Infrastructure",
-        themeClass: "accent-water",
-        transcript: text,
-        translation: lowerText.includes('తాగునీటి') 
-          ? "There is a severe drinking water problem in our village. Children are unable to attend school because they must walk 8 kilometers daily to fetch clean water." 
-          : text,
-        scheme: "Jal Jeevan Mission (JJM)",
-        urgency: "🔴 Critical (Score: 9.4/10)",
-        urgencyValue: 9.4,
-        urgencyClass: "accent-critical",
-        clusterId: `Water-Cluster-${Math.floor(Math.random() * 90 + 10)}`,
-        contribution: "HIGH (+1.8 to regional deficit)",
-        summary: `Your multilingual submission has been successfully translated and categorized under <strong>Water Infrastructure</strong>. The evidence matches existing infrastructure gap profiles in ${report.city || 'Tikamgarh Block'} (−63% coverage below norm). The school-dropout/drought risk triggers a heavy critical priority score multiplier. This report has been consolidated into the active national evidence cockpit.`,
-        confidence: "96% AI Confidence",
-        proposals: [
-          { id: 1, name: "Rural Drinking Water Network Upgrade", match: "94% AI Match", location: `📍 ${report.city || 'Tikamgarh'}, ${report.state || 'UP'}`, theme: "Water Infrastructure", supports: 4821 },
-          { id: 2, name: "Panchayat Primary Health Centre Expansion", match: "42% Similarity", location: `📍 ${report.district || 'Bundelkhand'}, ${report.state || 'UP'}`, theme: "Healthcare Access", supports: 842 }
-        ]
-      };
-    } 
-    // Healthcare / Clinic / Hospital Scenario
-    else if (lowerText.includes('health') || lowerText.includes('clinic') || lowerText.includes('phc') || lowerText.includes('hospital') || lowerText.includes('doctor') || lowerText.includes('एम्बुलेंस') || lowerText.includes('अस्पताल')) {
-      scenario = {
-        lang: lowerText.match(/[\u0900-\u097F]/) ? "Hindi (ISO: hi_IN)" : "English (ISO: en_US)",
-        theme: "Healthcare Access",
-        themeClass: "accent-health",
-        transcript: text,
-        translation: lowerText.includes('एम्बुलेंस') || lowerText.includes('अस्पताल') 
-          ? "There is no Primary Health Centre (PHC) in our block. The nearest hospital is 45 kilometers away, and even emergency ambulances cannot reach here." 
-          : text,
-        scheme: "National Health Mission (NHM)",
-        urgency: "🔴 Critical (Score: 8.9/10)",
-        urgencyValue: 8.9,
-        urgencyClass: "accent-health",
-        clusterId: `Health-Cluster-${Math.floor(Math.random() * 90 + 10)}`,
-        contribution: "HIGH (+1.5 to regional health index)",
-        summary: `Your multilingual submission has been processed. It matches the <strong>Healthcare Access</strong> theme. Evidence confirms severe localized medical desert status with the nearest hospital over 45km away. The ambulance connectivity challenge has triggered a high urgency level in ${report.city || 'Gaya Block'}. It has been synced into the active regional health funding proposal.`,
-        confidence: "91% AI Confidence",
-        proposals: [
-          { id: 3, name: "District Hospital Equipment Upgrade", match: "88% AI Match", location: `📍 ${report.city || 'Gaya'}, ${report.state || 'Bihar'}`, theme: "Healthcare Access", supports: 3247 },
-          { id: 4, name: "Rural Connectivity Link Road Expansion", match: "51% Similarity", location: `📍 ${report.district || 'Magadh Area'}, ${report.state || 'Bihar'}`, theme: "Road Connectivity", supports: 1542 }
-        ]
-      };
+      // Water Pipeline / Drought Scenario
+      if (lowerText.includes('water') || lowerText.includes('drinking') || lowerText.includes('pipeline') || lowerText.includes('well') || lowerText.includes('తాగునీటి') || lowerText.includes('पानी')) {
+        scenario = {
+          lang: lowerText.includes('తాగునీటి') ? "Telugu (ISO: te_IN)" : (lowerText.match(/[\u0900-\u097F]/) ? "Hindi (ISO: hi_IN)" : "English (ISO: en_US)"),
+          theme: "Water Infrastructure",
+          themeClass: "accent-water",
+          transcript: text,
+          translation: lowerText.includes('తాగునీటి') 
+            ? "There is a severe drinking water problem in our village. Children are unable to attend school because they must walk 8 kilometers daily to fetch clean water." 
+            : text,
+          scheme: "Jal Jeevan Mission (JJM)",
+          urgency: "🔴 Critical (Score: 9.4/10)",
+          urgencyValue: 9.4,
+          urgencyClass: "accent-critical",
+          clusterId: `Water-Cluster-${Math.floor(Math.random() * 90 + 10)}`,
+          contribution: "HIGH (+1.8 to regional deficit)",
+          summary: `Your multilingual submission has been successfully translated and categorized under <strong>Water Infrastructure</strong>. The evidence matches existing infrastructure gap profiles in ${report.city || 'Tikamgarh Block'} (−63% coverage below norm). The school-dropout/drought risk triggers a heavy critical priority score multiplier. This report has been consolidated into the active national evidence cockpit.`,
+          confidence: "96% AI Confidence",
+          proposals: [
+            { id: 1, name: "Rural Drinking Water Network Upgrade", match: "94% AI Match", location: `📍 ${report.city || 'Tikamgarh'}, ${report.state || 'UP'}`, theme: "Water Infrastructure", supports: 4821 },
+            { id: 2, name: "Panchayat Primary Health Centre Expansion", match: "42% Similarity", location: `📍 ${report.district || 'Bundelkhand'}, ${report.state || 'UP'}`, theme: "Healthcare Access", supports: 842 }
+          ]
+        };
+      } 
+      // Healthcare / Clinic / Hospital Scenario
+      else if (lowerText.includes('health') || lowerText.includes('clinic') || lowerText.includes('phc') || lowerText.includes('hospital') || lowerText.includes('doctor') || lowerText.includes('एम्बुलेंस') || lowerText.includes('अस्पताल')) {
+        scenario = {
+          lang: lowerText.match(/[\u0900-\u097F]/) ? "Hindi (ISO: hi_IN)" : "English (ISO: en_US)",
+          theme: "Healthcare Access",
+          themeClass: "accent-health",
+          transcript: text,
+          translation: lowerText.includes('एम्बुलेंस') || lowerText.includes('अस्पताल') 
+            ? "There is no Primary Health Centre (PHC) in our block. The nearest hospital is 45 kilometers away, and even emergency ambulances cannot reach here." 
+            : text,
+          scheme: "National Health Mission (NHM)",
+          urgency: "🔴 Critical (Score: 8.9/10)",
+          urgencyValue: 8.9,
+          urgencyClass: "accent-health",
+          clusterId: `Health-Cluster-${Math.floor(Math.random() * 90 + 10)}`,
+          contribution: "HIGH (+1.5 to regional health index)",
+          summary: `Your multilingual submission has been processed. It matches the <strong>Healthcare Access</strong> theme. Evidence confirms severe localized medical desert status with the nearest hospital over 45km away. The ambulance connectivity challenge has triggered a high urgency level in ${report.city || 'Gaya Block'}. It has been synced into the active regional health funding proposal.`,
+          confidence: "91% AI Confidence",
+          proposals: [
+            { id: 3, name: "District Hospital Equipment Upgrade", match: "88% AI Match", location: `📍 ${report.city || 'Gaya'}, ${report.state || 'Bihar'}`, theme: "Healthcare Access", supports: 3247 },
+            { id: 4, name: "Rural Connectivity Link Road Expansion", match: "51% Similarity", location: `📍 ${report.district || 'Magadh Area'}, ${report.state || 'Bihar'}`, theme: "Road Connectivity", supports: 1542 }
+          ]
+        };
+      }
+      // Road / Transportation / Connectivity Scenario
+      else if (lowerText.includes('road') || lowerText.includes('pmgsy') || lowerText.includes('bridge') || lowerText.includes('highway') || lowerText.includes('connectivity') || lowerText.includes('रास्ता') || lowerText.includes('सड़क')) {
+        scenario = {
+          lang: lowerText.match(/[\u0900-\u097F]/) ? "Hindi (ISO: hi_IN)" : "English (ISO: en_US)",
+          theme: "Road Connectivity",
+          themeClass: "accent-water",
+          transcript: text,
+          translation: text,
+          scheme: "Pradhan Mantri Gram Sadak Yojana (PMGSY)",
+          urgency: "🟠 High (Score: 8.6/10)",
+          urgencyValue: 8.6,
+          urgencyClass: "accent-water",
+          clusterId: `Road-Cluster-${Math.floor(Math.random() * 90 + 10)}`,
+          contribution: "HIGH (+1.2 to accessibility score)",
+          summary: `Your submission has been cataloged under the <strong>Road Connectivity (PMGSY)</strong> scheme. Access indicators in ${report.city || 'Koraput Block'} confirm that over 89 villages lack all-weather metalled road access, triggering transport priority multipliers. This report is flagged for Lok Sabha MP review in the Q2 budgeting round.`,
+          confidence: "94% AI Confidence",
+          proposals: [
+            { id: 5, name: "Rural Road Connectivity (PMGSY Ph.2)", match: "98% AI Match", location: `📍 ${report.city || 'Koraput'}, ${report.state || 'Odisha'}`, theme: "Road Connectivity", supports: 2819 },
+            { id: 6, name: "Solar Micro-Grid Electrification", match: "31% Similarity", location: `📍 ${report.district || 'Koraput District'}, ${report.state || 'Odisha'}`, theme: "Energy Access", supports: 1547 }
+          ]
+        };
+      }
+      // Solar / Electricity / Power Scenario
+      else if (lowerText.includes('solar') || lowerText.includes('electricity') || lowerText.includes('power') || lowerText.includes('grid') || lowerText.includes('light') || lowerText.includes('बिजली')) {
+        scenario = {
+          lang: lowerText.match(/[\u0900-\u097F]/) ? "Hindi (ISO: hi_IN)" : "English (ISO: en_US)",
+          theme: "Energy Access",
+          themeClass: "accent-water",
+          transcript: text,
+          translation: text,
+          scheme: "PM-KUSUM / Deen Dayal Upadhyaya Gram Jyoti Yojana",
+          urgency: "🟠 High (Score: 8.2/10)",
+          urgencyValue: 8.2,
+          urgencyClass: "accent-water",
+          clusterId: `Power-Cluster-${Math.floor(Math.random() * 90 + 10)}`,
+          contribution: "HIGH (+1.1 to rural grid expansion)",
+          summary: `Your power-grid feedback is analyzed under <strong>Energy Access</strong>. Correlating local coordinates with satellite night-lights confirms a deficit grid status. This submission has been merged into the PM-KUSUM rural solar micro-grid proposal list.`,
+          confidence: "89% AI Confidence",
+          proposals: [
+            { id: 7, name: "Solar Micro-Grid Electrification", match: "96% AI Match", location: `📍 ${report.city || 'Barmer'}, ${report.state || 'Rajasthan'}`, theme: "Energy Access", supports: 1547 },
+            { id: 8, name: "School Capacity & Midday Meal Infra", match: "24% Similarity", location: `📍 ${report.district || 'Barmer Block'}, ${report.state || 'Rajasthan'}`, theme: "School Capacity", supports: 1203 }
+          ]
+        };
+      }
     }
-    // Road / Transportation / Connectivity Scenario
-    else if (lowerText.includes('road') || lowerText.includes('pmgsy') || lowerText.includes('bridge') || lowerText.includes('highway') || lowerText.includes('connectivity') || lowerText.includes('रास्ता') || lowerText.includes('सड़क')) {
-      scenario = {
-        lang: lowerText.match(/[\u0900-\u097F]/) ? "Hindi (ISO: hi_IN)" : "English (ISO: en_US)",
-        theme: "Road Connectivity",
-        themeClass: "accent-water",
-        transcript: text,
-        translation: text,
-        scheme: "Pradhan Mantri Gram Sadak Yojana (PMGSY)",
-        urgency: "🟠 High (Score: 8.6/10)",
-        urgencyValue: 8.6,
-        urgencyClass: "accent-water",
-        clusterId: `Road-Cluster-${Math.floor(Math.random() * 90 + 10)}`,
-        contribution: "HIGH (+1.2 to accessibility score)",
-        summary: `Your submission has been cataloged under the <strong>Road Connectivity (PMGSY)</strong> scheme. Access indicators in ${report.city || 'Koraput Block'} confirm that over 89 villages lack all-weather metalled road access, triggering transport priority multipliers. This report is flagged for Lok Sabha MP review in the Q2 budgeting round.`,
-        confidence: "94% AI Confidence",
-        proposals: [
-          { id: 5, name: "Rural Road Connectivity (PMGSY Ph.2)", match: "98% AI Match", location: `📍 ${report.city || 'Koraput'}, ${report.state || 'Odisha'}`, theme: "Road Connectivity", supports: 2819 },
-          { id: 6, name: "Solar Micro-Grid Electrification", match: "31% Similarity", location: `📍 ${report.district || 'Koraput District'}, ${report.state || 'Odisha'}`, theme: "Energy Access", supports: 1547 }
-        ]
-      };
+
+    // Post-process similar proposals with actual live database records for duplicate detection
+    let existingSignals = [];
+    try {
+      existingSignals = await StorageEngine.getAll('citizenSignals');
+    } catch (e) {
+      existingSignals = [];
     }
-    // Solar / Electricity / Power Scenario
-    else if (lowerText.includes('solar') || lowerText.includes('electricity') || lowerText.includes('power') || lowerText.includes('grid') || lowerText.includes('light') || lowerText.includes('बिजली')) {
-      scenario = {
-        lang: lowerText.match(/[\u0900-\u097F]/) ? "Hindi (ISO: hi_IN)" : "English (ISO: en_US)",
-        theme: "Energy Access",
-        themeClass: "accent-water",
-        transcript: text,
-        translation: text,
-        scheme: "PM-KUSUM / Deen Dayal Upadhyaya Gram Jyoti Yojana",
-        urgency: "🟠 High (Score: 8.2/10)",
-        urgencyValue: 8.2,
-        urgencyClass: "accent-water",
-        clusterId: `Power-Cluster-${Math.floor(Math.random() * 90 + 10)}`,
-        contribution: "HIGH (+1.1 to rural grid expansion)",
-        summary: `Your power-grid feedback is analyzed under <strong>Energy Access</strong>. Correlating local coordinates with satellite night-lights confirms a deficit grid status. This submission has been merged into the PM-KUSUM rural solar micro-grid proposal list.`,
-        confidence: "89% AI Confidence",
-        proposals: [
-          { id: 7, name: "Solar Micro-Grid Electrification", match: "96% AI Match", location: `📍 ${report.city || 'Barmer'}, ${report.state || 'Rajasthan'}`, theme: "Energy Access", supports: 1547 },
-          { id: 8, name: "School Capacity & Midday Meal Infra", match: "24% Similarity", location: `📍 ${report.district || 'Barmer Block'}, ${report.state || 'Rajasthan'}`, theme: "School Capacity", supports: 1203 }
-        ]
-      };
-    }
+
+    const matchingSignals = existingSignals.filter(s => {
+      const sameTheme = (s.theme || s.category || '').toLowerCase() === scenario.theme.toLowerCase();
+      const sameDistrict = (s.district || '').toLowerCase() === (report.district || '').toLowerCase();
+      return sameTheme && sameDistrict;
+    });
+
+    const realProposals = matchingSignals.map(sig => ({
+      id: sig.id,
+      name: sig.title || `${sig.theme || sig.category} Upgrade Requisition`,
+      match: "98% AI Match (DUPLICATE)",
+      location: `📍 ${sig.city || 'Local Area'}, ${sig.state || 'Local State'}`,
+      theme: sig.theme || sig.category,
+      supports: sig.supports || 1,
+      isRealSignal: true
+    }));
+
+    scenario.proposals = [...realProposals, ...scenario.proposals].slice(0, 2);
 
     return scenario;
   },
@@ -226,27 +254,27 @@ Only return a valid JSON object. Do not include any markdown backticks (such as 
    * @returns {Promise<string>}
    */
   async askCopilot(prompt, history = []) {
+    let reports = [];
+    try {
+      reports = await StorageEngine.getAll('citizenSignals');
+    } catch (e) {
+      reports = [];
+    }
+
     const apiKey = localStorage.getItem('gemini_api_key');
     if (apiKey && navigator.onLine) {
       try {
-        // Retrieve signals for database-grounded response
-        let reports = [];
-        try {
-          reports = await StorageEngine.getAll('citizenSignals');
-        } catch (e) {
-          reports = [];
-        }
-
         const reportContext = reports.length === 0 
           ? "No citizen signals have been submitted yet in the database." 
           : JSON.stringify(reports.map(r => ({
               state: r.state || '',
               district: r.district || '',
               city: r.city || '',
-              theme: r.theme || '',
-              description: r.detail || r.text || '',
-              urgency: r.priority || 6.5,
-              supports: r.support || 1,
+              ward: r.ward || '',
+              theme: r.theme || r.category || '',
+              description: r.aiSummary || r.text || '',
+              urgency: r.urgencyScore || 6.5,
+              supports: r.supports || 1,
               scheme: r.scheme || 'N/A'
             })));
 
@@ -288,9 +316,89 @@ Generate a helpful, grounded, and executive response. Use bullet points and clea
       }
     }
 
-    // High fidelity Copilot fallback simulation
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // High fidelity Copilot fallback simulation using LIVE DATA
+    await new Promise(resolve => setTimeout(resolve, 1200));
     const query = prompt.toLowerCase();
+
+    // Group reports to analyze live data
+    const waterReports = reports.filter(r => (r.theme || r.category || '').toLowerCase().includes('water'));
+    const healthReports = reports.filter(r => (r.theme || r.category || '').toLowerCase().includes('health'));
+    const roadReports = reports.filter(r => (r.theme || r.category || '').toLowerCase().includes('road'));
+    const energyReports = reports.filter(r => (r.theme || r.category || '').toLowerCase().includes('solar') || (r.theme || r.category || '').toLowerCase().includes('electr'));
+
+    const sortedReports = [...reports].sort((a, b) => (b.urgencyScore || 6.5) - (a.urgencyScore || 6.5));
+    const topReport = sortedReports[0];
+
+    // Response for "prioritize / priority / first / why"
+    if (query.includes('priorit') || query.includes('first') || query.includes('why')) {
+      if (reports.length === 0) {
+        return "There are currently no active development projects or citizen signals registered in the database. Once citizens submit development requests on the Citizen Portal, they will appear here and I will calculate their priority scores dynamically.";
+      }
+      
+      let response = `Based on our live database of **${reports.length} citizen signals**, the project that should be prioritized first is:\n\n`;
+      response += `### 🥇 Top Priority: **${topReport.theme} Upgrade Scheme**\n`;
+      response += `• **Location:** ${topReport.city}, ${topReport.district}, ${topReport.state} (Ward: ${topReport.ward || 'N/A'})\n`;
+      response += `• **Priority Score:** **${(topReport.urgencyScore || 6.5).toFixed(1)}/10**\n`;
+      response += `• **Support Count:** ${topReport.supports || 1} citizens supporting\n`;
+      response += `• **National Scheme:** ${topReport.scheme || 'N/A'}\n\n`;
+      response += `### 🔍 Why this project is prioritized first:\n`;
+      response += `1. **Acute Infrastructure Deficit:** Our local telemetry shows this region lacks baseline norm coverage.\n`;
+      response += `2. **High Social Vulnerability:** The issue described ("*${topReport.englishTranslation || topReport.text}*") represents a high social risk and potential school dropout/emergency transit blockade.\n`;
+      response += `3. **Consensus Urgency:** Real-time citizen demand indicators show active local mobilization.\n\n`;
+      response += `Would you like me to generate a Detailed Project Report (DPR) for this proposal to unlock funding under **${topReport.scheme}**?`;
+      return response;
+    }
+
+    // Response for "compare / healthcare / road"
+    if (query.includes('compare') || (query.includes('health') && query.includes('road'))) {
+      let response = `### 📊 Comparative Development Analysis: Healthcare vs. Roads\n\n`;
+      response += `Here is a comparison of active demand clusters registered across our constituency:\n\n`;
+      response += `1. **Healthcare Access:**\n`;
+      response += `   • **Active Signals:** ${healthReports.length} reports\n`;
+      response += `   • **Average Urgency:** ${healthReports.length > 0 ? (healthReports.reduce((acc, r) => acc + (r.urgencyScore || 6.5), 0) / healthReports.length).toFixed(1) : '0.0'}/10\n`;
+      response += `   • **Key Scheme:** National Health Mission (NHM)\n\n`;
+      response += `2. **Road Connectivity:**\n`;
+      response += `   • **Active Signals:** ${roadReports.length} reports\n`;
+      response += `   • **Average Urgency:** ${roadReports.length > 0 ? (roadReports.reduce((acc, r) => acc + (r.urgencyScore || 6.5), 0) / roadReports.length).toFixed(1) : '0.0'}/10\n`;
+      response += `   • **Key Scheme:** Pradhan Mantri Gram Sadak Yojana (PMGSY)\n\n`;
+
+      if (healthReports.length === 0 && roadReports.length === 0) {
+        response += `*No active citizen signals are currently registered for healthcare or roads in the database. General baseline metrics are loaded.*`;
+      } else {
+        const healthAvg = healthReports.length > 0 ? (healthReports.reduce((acc, r) => acc + (r.urgencyScore || 6.5), 0) / healthReports.length) : 0;
+        const roadAvg = roadReports.length > 0 ? (roadReports.reduce((acc, r) => acc + (r.urgencyScore || 6.5), 0) / roadReports.length) : 0;
+        if (healthAvg > roadAvg) {
+          response += `**AI Recommendation:** Healthcare Access projects currently carry a higher average priority score (**${healthAvg.toFixed(1)}/10**) due to severe localized medical clinic deserts and emergency transit constraints. We recommend prioritizing PHC facility allocations this quarter.`;
+        } else if (roadAvg > healthAvg) {
+          response += `**AI Recommendation:** Road Connectivity projects currently carry a higher average priority score (**${roadAvg.toFixed(1)}/10**) due to unpaved all-weather road isolation affecting agricultural transit. PMGSY allocations should take precedence.`;
+        } else {
+          response += `**AI Recommendation:** Both clusters show critical parity. We recommend joint-scheme proposals linking health centre accessibility with rural road networks.`;
+        }
+      }
+      return response;
+    }
+
+    // Response for "ward / attention / hotspot"
+    if (query.includes('ward') || query.includes('attention') || query.includes('hotspot')) {
+      if (reports.length === 0) {
+        return "No citizen signals have been registered yet. Once complaints are submitted, I will list the specific wards and localities requiring immediate attention.";
+      }
+      
+      const criticalReports = reports.filter(r => (r.urgencyScore || 6.5) >= 8.5);
+      let response = `### 🚨 Localities & Wards Requiring Immediate Attention\n\n`;
+      response += `Based on real-time citizen demand telemetry, here are the highest-deficit wards in our constituency:\n\n`;
+      
+      const listToRender = criticalReports.length > 0 ? criticalReports : sortedReports.slice(0, 3);
+      listToRender.forEach((r, idx) => {
+        response += `${idx + 1}. **Ward: ${r.ward || 'N/A'}**, ${r.city}, ${r.district} (${r.state})\n`;
+        response += `   • **Theme:** ${r.theme} · **Priority Score:** **${(r.urgencyScore || 6.5).toFixed(1)}/10**\n`;
+        response += `   • **Status:** ${r.urgency === 'critical' ? '🔴 Critical' : '🟠 High'}\n`;
+        response += `   • **Primary Issue:** "*${r.englishTranslation || r.text}*"\n\n`;
+      });
+      
+      response += `**Administrative Recommendation:** Direct the District Collector to initiate an immediate site audit and file a feasibility report for these wards.`;
+      return response;
+    }
 
     if (query.includes('budget') || query.includes('fund') || query.includes('money')) {
       return "Based on active Ministry API listings, there are **3 open funding windows** available to our constituency this quarter:\n\n" +
@@ -319,10 +427,11 @@ Generate a helpful, grounded, and executive response. Use bullet points and clea
     }
 
     return "Greetings Arjun Kumar, MP. I am your **JanVikas Governance Copilot**.\n\n" +
-      "I have synthesized our constituency's **1,247 citizen development signals** against NITI Aayog guidelines and national database matrices. Here are some prompt suggestions to ask me:\n\n" +
-      "• *'Which district needs water funds urgently?'*\n" +
-      "• *'What is the budget status of the Gaya PHC proposal?'*\n" +
-      "• *'Can you generate a DPR draft for PMGSY road connectivity?'*\n\n" +
+      `Our live database currently holds **${reports.length} active citizen development signals** across the constituency.\n\n` +
+      "Here are some prompt suggestions to ask me:\n\n" +
+      "• *'Which project should be prioritized first?'*\n" +
+      "• *'Compare healthcare and roads.'*\n" +
+      "• *'Which ward needs immediate attention?'*\n\n" +
       "How can I assist your legislative development plans today?";
   }
 };
