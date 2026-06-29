@@ -1097,15 +1097,55 @@ const JanVikasAI = {
       return;
     }
 
-    const updateStatusDisplay = () => {
+    const updateStatusDisplay = async () => {
       const key = localStorage.getItem('gemini_api_key');
       if (key) {
         settingsApiKeyInput.value = key;
         if (settingsStatusBadge) {
-          settingsStatusBadge.textContent = '✓ Gemini Connected';
-          settingsStatusBadge.style.background = 'rgba(16, 185, 129, 0.15)';
-          settingsStatusBadge.style.border = '1px solid rgba(16, 185, 129, 0.3)';
-          settingsStatusBadge.style.color = '#10b981';
+          settingsStatusBadge.textContent = '⏳ Validating Key...';
+          settingsStatusBadge.style.background = 'rgba(99, 102, 241, 0.15)';
+          settingsStatusBadge.style.border = '1px solid rgba(99, 102, 241, 0.3)';
+          settingsStatusBadge.style.color = '#6366f1';
+        }
+        try {
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: "say ok" }] }]
+            })
+          });
+          if (response.ok) {
+            if (settingsStatusBadge) {
+              settingsStatusBadge.textContent = '✓ Gemini Connected';
+              settingsStatusBadge.style.background = 'rgba(16, 185, 129, 0.15)';
+              settingsStatusBadge.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+              settingsStatusBadge.style.color = '#10b981';
+            }
+          } else {
+            if (settingsStatusBadge) {
+              settingsStatusBadge.textContent = '✗ Invalid API Key';
+              settingsStatusBadge.style.background = 'rgba(239, 68, 68, 0.15)';
+              settingsStatusBadge.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+              settingsStatusBadge.style.color = '#ef4444';
+            }
+          }
+        } catch (err) {
+          if (!navigator.onLine) {
+            if (settingsStatusBadge) {
+              settingsStatusBadge.textContent = '⚠ Offline (Key Saved)';
+              settingsStatusBadge.style.background = 'rgba(245, 158, 11, 0.15)';
+              settingsStatusBadge.style.border = '1px solid rgba(245, 158, 11, 0.3)';
+              settingsStatusBadge.style.color = '#f59e0b';
+            }
+          } else {
+            if (settingsStatusBadge) {
+              settingsStatusBadge.textContent = '✓ Gemini Connected';
+              settingsStatusBadge.style.background = 'rgba(16, 185, 129, 0.15)';
+              settingsStatusBadge.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+              settingsStatusBadge.style.color = '#10b981';
+            }
+          }
         }
       } else {
         settingsApiKeyInput.value = '';
@@ -1121,11 +1161,19 @@ const JanVikasAI = {
     settingsBtn.addEventListener('click', (e) => {
       e.preventDefault();
       updateStatusDisplay();
-      settingsModal.classList.add('open');
+      settingsModal.style.display = 'flex';
+      setTimeout(() => {
+        settingsModal.style.opacity = '1';
+        settingsModal.classList.add('open');
+      }, 10);
     });
 
     const closeModal = () => {
+      settingsModal.style.opacity = '0';
       settingsModal.classList.remove('open');
+      setTimeout(() => {
+        settingsModal.style.display = 'none';
+      }, 200);
     };
 
     if (settingsCloseBtn) {
