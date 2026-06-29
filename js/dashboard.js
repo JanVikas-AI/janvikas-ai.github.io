@@ -1121,17 +1121,11 @@ const JanVikasAI = {
     settingsBtn.addEventListener('click', (e) => {
       e.preventDefault();
       updateStatusDisplay();
-      settingsModal.style.display = 'flex';
-      setTimeout(() => {
-        settingsModal.style.opacity = '1';
-      }, 10);
+      settingsModal.classList.add('open');
     });
 
     const closeModal = () => {
-      settingsModal.style.opacity = '0';
-      setTimeout(() => {
-        settingsModal.style.display = 'none';
-      }, 200);
+      settingsModal.classList.remove('open');
     };
 
     if (settingsCloseBtn) {
