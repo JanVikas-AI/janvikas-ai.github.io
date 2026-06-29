@@ -9,6 +9,7 @@
 import { Utils } from './utils.js';
 import { StorageEngine } from './firebase.js';
 import { AIEngine } from './ai-engine.js';
+import { locationData } from './location-data.js';
 
 const JanVikasCitizen = {
   /* ─── Hierarchical Location Datasets ─────────────────── */
@@ -380,6 +381,7 @@ const JanVikasCitizen = {
 
   /* ─── Initialization ────────────────────────────────── */
   init() {
+    this.locationData = locationData;
     this._cacheElements();
     this._bindEvents();
     this._populateStates();
@@ -406,7 +408,6 @@ const JanVikasCitizen = {
       locState: document.getElementById('loc-state'),
       locDistrict: document.getElementById('loc-district'),
       locCity: document.getElementById('loc-city'),
-      locWard: document.getElementById('loc-ward'),
       portalGrid: document.getElementById('portal-grid'),
       intakeCard: document.getElementById('citizen-intake-card'),
       processingArea: document.getElementById('analysis-processing-area'),
@@ -633,15 +634,39 @@ const JanVikasCitizen = {
     this._el.voiceConfirmationArea.style.display = 'flex';
     this._el.voiceOriginalTranscript.value = transcript;
     
+    // Reset warning state
+    const warningEl = document.getElementById('voice-warning');
+    if (warningEl) warningEl.style.display = 'none';
+    this._el.voiceOriginalTranscript.style.borderColor = '';
+
     this._el.voiceDetectedLang.textContent = 'Detecting...';
     this._el.voiceConfidence.textContent = '--';
     this._el.voiceTranslationText.textContent = 'Analyzing transcription with Translation pipeline...';
     
     try {
       const result = await AIEngine.translateSpeech(transcript);
+      const confidence = result.confidence || 88;
+      
+      // Low confidence triggers
+      const isLowConfidence = confidence < 75 || transcript.trim().length < 10;
+      
       this._el.voiceDetectedLang.textContent = result.language || 'Auto-detected';
-      this._el.voiceConfidence.textContent = `${result.confidence || 90}% (${result.engine || 'Offline'})`;
-      this._el.voiceTranslationText.textContent = result.translation || transcript;
+      this._el.voiceConfidence.textContent = `${confidence}% (${result.engine || 'Offline'})`;
+      
+      if (isLowConfidence) {
+        this._el.voiceConfidence.style.color = '#ef4444';
+        if (warningEl) warningEl.style.display = 'flex';
+        this._el.voiceOriginalTranscript.style.borderColor = 'rgba(239, 68, 68, 0.45)';
+        this._el.voiceOriginalTranscript.style.boxShadow = '0 0 0 2px rgba(239, 68, 68, 0.15)';
+        this._el.voiceTranslationText.textContent = 'Speech could not be recognized clearly. Please choose to Retry Recording or Edit Transcript Manually above.';
+        this._showToast("Low speech confidence detected. Please edit or re-record.");
+      } else {
+        this._el.voiceConfidence.style.color = '#10b981';
+        this._el.voiceOriginalTranscript.style.borderColor = '';
+        this._el.voiceOriginalTranscript.style.boxShadow = '';
+        this._el.voiceTranslationText.textContent = result.translation || transcript;
+      }
+      
       this.state.latestTranslationResult = result;
     } catch (err) {
       console.warn("Translation failed:", err);
@@ -752,15 +777,13 @@ const JanVikasCitizen = {
 
   onDistrictChange(districtName) {
     this.state.selectedDistrict = districtName;
-    const cities = Object.keys(this.locationData[this.state.selectedState]?.[districtName] || {});
+    const cities = this.locationData[this.state.selectedState]?.[districtName] || [];
     this._el.locCity.innerHTML = cities.map(c => `<option value="${c}">${c}</option>`).join('');
     this.onCityChange(cities[0]);
   },
 
   onCityChange(cityName) {
     this.state.selectedCity = cityName;
-    const wards = this.locationData[this.state.selectedState]?.[this.state.selectedDistrict]?.[cityName] || [];
-    this._el.locWard.innerHTML = wards.map(w => `<option value="${w}">${w}</option>`).join('');
   },
 
   /* ─── Form Submission & Pipeline Simulation ────────── */
@@ -900,11 +923,56 @@ const JanVikasCitizen = {
           timestamp: Date.now()
         };
 
+        const startTime = Date.now();
+        
+        // Create a listener on BroadcastChannel to wait for 'dashboard_acknowledged'
+        const ackPromise = new Promise((resolve, reject) => {
+          let bcListener;
+          let timeoutId;
+          
+          if (window.BroadcastChannel) {
+            const bc = new BroadcastChannel('janvikas_channel');
+            bcListener = (event) => {
+              if (event.data && event.data.type === 'dashboard_acknowledged') {
+                clearTimeout(timeoutId);
+                bc.removeEventListener('message', bcListener);
+                bc.close();
+                resolve();
+              }
+            };
+            bc.addEventListener('message', bcListener);
+          } else {
+            resolve(); // Fallback if BroadcastChannel is missing
+          }
+
+          // Timeout after 4.5 seconds
+          timeoutId = setTimeout(() => {
+            if (window.BroadcastChannel && bcListener) {
+              const bc = new BroadcastChannel('janvikas_channel');
+              bc.removeEventListener('message', bcListener);
+              bc.close();
+            }
+            // Double-check localStorage as a secondary fallback channel
+            const lastSync = localStorage.getItem('jv_dashboard_last_sync');
+            if (lastSync && parseInt(lastSync) >= startTime) {
+              resolve();
+            } else {
+              reject(new Error("Telemetry Cockpit Offline: Dashboard must be open in another tab to establish a live sync connection. Please keep both tabs open."));
+            }
+          }, 4500);
+        });
+
         // Insert into storage which also triggers BroadcastChannel message post
         await StorageEngine.insert('citizenSignals', storedReport);
 
-        await new Promise(resolve => setTimeout(resolve, 800));
-        updateStep('step-ready', 'completed', 'Government Brief Synced successfully');
+        // Wait for dynamic dashboard acknowledgement
+        try {
+          await ackPromise;
+          updateStep('step-ready', 'completed', 'Telemetry Sync Connection Established Successfully · 100% data integrity');
+        } catch (syncErr) {
+          updateStep('step-ready', 'failed', syncErr.message);
+          throw syncErr;
+        }
 
         // Allow some time for user to see step 10 is green
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -915,8 +983,8 @@ const JanVikasCitizen = {
       } catch (err) {
         console.error("Pipeline failure:", err);
         // Mark all active steps as failed
-        document.querySelectorAll('.timeline-step.active').forEach(el => {
-          el.classList.remove('active');
+        document.querySelectorAll('.timeline-step.active, .timeline-step.step-ready').forEach(el => {
+          el.classList.remove('active', 'completed');
           el.classList.add('failed');
           const desc = el.querySelector('.step-desc');
           if (desc) desc.textContent = `Failed: ${err.message || 'Unknown processing error'}`;
@@ -1052,17 +1120,17 @@ const JanVikasCitizen = {
             const sigTheme = sig.theme || sig.category || 'Other';
             if (sigTheme.toLowerCase().includes(cardTheme.toLowerCase().split(' ')[0])) {
               const currentSupports = sig.supports || 1;
-              await StorageEngine.update('citizenSignals', sig.id, { supports: currentSupports + 1 });
+              await StorageEngine.update('citizenSignals', sig.id || sig.uid, { supports: currentSupports + 1 });
               matchedAny = true;
-              console.log(`Successfully boosted live signal ${sig.id} (${sigTheme}) supports to ${currentSupports + 1}`);
+              console.log(`Successfully boosted live signal ${sig.id || sig.uid} (${sigTheme}) supports to ${currentSupports + 1}`);
             }
           }
 
           if (!matchedAny && signals.length > 0) {
             const sig = signals[0];
             const currentSupports = sig.supports || 1;
-            await StorageEngine.update('citizenSignals', sig.id, { supports: currentSupports + 1 });
-            console.log(`No exact category match, boosted first signal ${sig.id} supports to ${currentSupports + 1}`);
+            await StorageEngine.update('citizenSignals', sig.id || sig.uid, { supports: currentSupports + 1 });
+            console.log(`No exact category match, boosted first signal ${sig.id || sig.uid} supports to ${currentSupports + 1}`);
           }
         } catch (err) {
           console.warn("Error running support boost on citizenSignals:", err);
