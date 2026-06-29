@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/citizen.css">
   <style>
     /* Additional custom rules specifically for Citizen Portal visual polish */
     :root {
@@ -769,6 +770,7 @@
           <span style="font-size: 11px;">1,247 national signals aggregated</span>
         </div>
         <div class="topbar-time" id="portal-clock">25 Jun 2026 · 08:00 UTC</div>
+        <button id="settings-btn" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-primary); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" title="Configure AI & API Settings">⚙️</button>
       </div>
     </div>
   </header>
@@ -1166,7 +1168,56 @@
     </div>
   </footer>
 
+  <!-- SETTINGS MODAL -->
+  <div class="copilot-modal-overlay" id="settings-modal" style="position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s;">
+    <div class="copilot-modal" style="width: 500px; background: var(--bg-card); border: 1px solid rgba(99,102,241,0.4); border-radius: var(--r-xl); box-shadow: 0 24px 64px rgba(0,0,0,0.6); overflow: hidden; display: flex; flex-direction: column;">
+      <div class="copilot-modal-header" style="padding: 18px 20px; background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(168,85,247,0.1)); border-bottom: 1px solid rgba(99,102,241,0.2); display: flex; align-items: center; justify-content: space-between;">
+        <div style="font-size: 14px; font-weight: 700; font-family: var(--font-display); color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+          <span>⚙️</span> Platform AI & API Configuration
+        </div>
+        <button class="copilot-modal-close" id="settings-modal-close" style="background: none; border: none; font-size: 18px; color: var(--text-tertiary); cursor: pointer;">✕</button>
+      </div>
+      
+      <div style="padding: 24px; display: flex; flex-direction: column; gap: 20px; color: var(--text-primary); font-family: var(--font-body); font-size: 13px;">
+        <!-- Connection Status Badge -->
+        <div>
+          <div style="font-size: 11px; font-family: var(--font-mono); color: var(--text-tertiary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px;">Current AI Engine Status</div>
+          <div id="settings-engine-status" style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 20px; font-family: var(--font-mono); font-size: 11px; font-weight: 600; text-transform: uppercase;">
+            <!-- Will be set dynamically -->
+          </div>
+        </div>
+
+        <!-- API Key Form -->
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label for="settings-api-key" style="font-weight: 500; color: var(--text-secondary);">Gemini Developer API Key</label>
+          <div style="position: relative;">
+            <input type="password" id="settings-api-key" placeholder="Enter your gemini-2.5-flash API Key..." style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--r-md); padding: 10px 40px 10px 12px; color: var(--text-primary); font-family: var(--font-mono); font-size: 12px; outline: none; transition: border 0.2s;" />
+            <button id="toggle-key-visibility" type="button" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 14px;">👁️</button>
+          </div>
+          <div style="font-size: 11px; color: var(--text-tertiary); line-height: 1.4; margin-top: 4px;">
+            Your API key is saved strictly in your local browser storage (<code style="font-family: var(--font-mono);">localStorage</code>) and never transmitted to any external backend server.
+          </div>
+        </div>
+
+        <!-- Get Key Link -->
+        <div style="background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.15); border-radius: var(--r-md); padding: 12px; line-height: 1.5; color: var(--text-secondary);">
+          💡 <strong>Don't have an API key?</strong> You can get a free developer key for <strong>Gemini 2.5 Flash</strong> in seconds from the <a href="https://aistudio.google.com/" target="_blank" style="color: var(--indigo-300); text-decoration: underline; font-weight: 500;">Google AI Studio Console</a>.
+        </div>
+
+        <!-- Actions -->
+        <div style="display: flex; gap: 12px; margin-top: 8px;">
+          <button id="settings-save-btn" style="flex: 1; padding: 10px; background: linear-gradient(135deg, var(--indigo-600), var(--purple-600)); border: none; border-radius: var(--r-md); color: white; font-weight: 600; font-family: var(--font-display); cursor: pointer; transition: transform 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            💾 Save Configuration
+          </button>
+          <button id="settings-clear-btn" style="padding: 10px 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--r-md); color: var(--text-secondary); font-family: var(--font-display); cursor: pointer; transition: background 0.2s;">
+            🗑️ Clear Key
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- MODULE BACKEND CONTROLLER -->
-  <script src="js/citizen-portal.js"></script>
+  <script type="module" src="js/citizen.js"></script>
 </body>
 </html>
