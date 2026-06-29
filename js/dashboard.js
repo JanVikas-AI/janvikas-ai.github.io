@@ -93,6 +93,7 @@ const JanVikasAI = {
       runAnalysisBtn: document.querySelector('#run-analysis-btn'),
       alertActionBtn: document.querySelector('#alert-action-btn'),
       mapEl:          document.querySelector('#jv-map'),
+      signalsListContainer: document.querySelector('#signals-list-container'),
     };
   },
 
@@ -688,7 +689,9 @@ const JanVikasAI = {
         } else {
           proj.uniqueLanguages.add('English');
         }
-        if (sig.imageUrl) {
+        if (sig.images && sig.images.length > 0) {
+          proj.images.push(...sig.images);
+        } else if (sig.imageUrl) {
           proj.images.push(sig.imageUrl);
         }
         if (sig.type === 'voice') {
@@ -942,12 +945,54 @@ const JanVikasAI = {
       this._renderInfraGaps();
       this._renderHotspotRows();
       
+      // Update dynamic signals list
+      this._renderSignalsList(signals);
+
+      // Find highest priority project and update "Top Recommended Project" alert card dynamically
+      if (projectsList.length > 0) {
+        const top = projectsList[0];
+        const alertHeadline = document.querySelector('.priority-alert .alert-headline');
+        const alertDetail = document.querySelector('.priority-alert .alert-detail');
+        if (alertHeadline && alertDetail) {
+          alertHeadline.textContent = `Priority #1: ${top.name} · ${top.city}, ${top.state} · Priority Score: ${top.score} / 10`;
+          
+          let alertImagesHtml = '';
+          if (top.images && top.images.length > 0) {
+            alertImagesHtml = `
+              <div class="alert-images" style="display:flex; gap:8px; margin-top:8px;">
+                ${top.images.map(img => `
+                  <img src="${img}" style="width:40px; height:40px; object-fit:cover; border-radius:4px; border:1px solid rgba(255,255,255,0.1); cursor:zoom-in;" onclick="JanVikasAI.enlargeImage('${img}')" />
+                `).join('')}
+              </div>`;
+          }
+
+          alertDetail.innerHTML = `
+            <strong>Population Affected: ${top.population}</strong> · Demand Growth: <strong>+${Math.round(top.score * 35)}% (72h)</strong> ·
+            Infrastructure Deficit: <strong>−${Math.round(100 - (top.score * 8))}% below norm</strong> · AI Confidence: <strong>${Math.round(90 + (top.score * 0.85))}%</strong> ·
+            Budget: <strong>₹${((top.supportCount * 50000 + top.evidenceCount * 120000) / 10000000).toFixed(2)} Cr</strong> · Fund Source: <strong>${top.scheme} Q3 window</strong>
+            ${alertImagesHtml}
+          `;
+        }
+      }
+
       // Update map markers
       this._applyMapFilter();
       this._updateMapEmptyState(mappedSuggestions.length);
 
       // Render Executive Brief
       this._renderExecutiveBrief(projectsList, signals);
+
+      // Send acknowledgement back via BroadcastChannel and localStorage
+      try {
+        localStorage.setItem('jv_dashboard_last_sync', Date.now().toString());
+        if (window.BroadcastChannel) {
+          const bc = new BroadcastChannel('janvikas_channel');
+          bc.postMessage({ type: 'dashboard_acknowledged', timestamp: Date.now() });
+          bc.close();
+        }
+      } catch (e) {
+        console.warn('Sync acknowledgement failed:', e);
+      }
     });
   },
 
@@ -1080,6 +1125,84 @@ const JanVikasAI = {
     if (newGenBtn) {
       newGenBtn.addEventListener('click', () => this.generateExecutiveBrief());
     }
+  },
+
+  _renderSignalsList(signals) {
+    const el = this._el.signalsListContainer;
+    if (!el) return;
+
+    if (!signals || signals.length === 0) {
+      el.innerHTML = `
+        <div style="text-align: center; padding: 40px; color: var(--text-tertiary); font-family: var(--font-mono); font-size: 12px;">
+          📡 No active citizen signals enqueued.
+        </div>`;
+      return;
+    }
+
+    el.innerHTML = signals.map(sig => {
+      const origLang = sig.detectedLanguage || 'English';
+      
+      let imageHtml = '';
+      if (sig.images && sig.images.length > 0) {
+        imageHtml = `
+          <div class="signal-images" style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
+            ${sig.images.map(img => `
+              <img src="${img}" class="signal-thumbnail" style="width: 50px; height: 50px; object-fit: cover; border-radius: var(--r-sm); border: 1px solid rgba(255,255,255,0.1); cursor: zoom-in; transition: transform 0.2s;" onclick="JanVikasAI.enlargeImage('${img}')" />
+            `).join('')}
+          </div>`;
+      }
+
+      return `
+        <div class="signal-item-v2" id="signal-card-${sig.id || sig.uid}">
+          <div class="signal-original">
+            <div class="signal-orig-label">Original · ${origLang}</div>
+            <div class="signal-orig-text">"${sig.text || sig.description || sig.textEntry}"</div>
+          </div>
+          <div class="signal-translated">
+            <div class="signal-trans-label"><span>🔄</span> Gemini Translation · English</div>
+            <div class="signal-trans-text">${sig.englishTranslation || sig.aiSummary || sig.text || sig.description || sig.textEntry}</div>
+          </div>
+          ${imageHtml}
+          <div class="signal-meta-row" style="margin-top: 12px;">
+            <span class="sig-tag sig-tag-lang">${origLang}</span>
+            <span class="sig-tag sig-tag-theme">${sig.theme}</span>
+            <span class="sig-tag sig-tag-cluster">${sig.evidenceClusterId || 'Cluster-01'}</span>
+            <span class="sig-tag sig-tag-source">${sig.detectedLanguage ? '🎙️ Voice Input' : '🖥️ Portal Input'}</span>
+            <span class="sig-tag sig-tag-impact">Priority: ${sig.urgencyScore || '8.2'}</span>
+            <span class="sig-tag sig-tag-contrib">Contribution: ${sig.priorityContribution || 'HIGH'}</span>
+            <span style="margin-left:auto; font-size:9px; color:var(--text-muted); font-family:var(--font-mono);">📍 ${sig.city || 'Tikamgarh'}, ${sig.state || 'UP'} · Just now</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  },
+
+  enlargeImage(imgUrl) {
+    let lightbox = document.getElementById('jv-lightbox');
+    if (!lightbox) {
+      lightbox = document.createElement('div');
+      lightbox.id = 'jv-lightbox';
+      lightbox.style.position = 'fixed';
+      lightbox.style.top = '0';
+      lightbox.style.left = '0';
+      lightbox.style.width = '100%';
+      lightbox.style.height = '100%';
+      lightbox.style.background = 'rgba(0,0,0,0.85)';
+      lightbox.style.backdropFilter = 'blur(10px)';
+      lightbox.style.zIndex = '99999';
+      lightbox.style.display = 'none';
+      lightbox.style.alignItems = 'center';
+      lightbox.style.justifyContent = 'center';
+      lightbox.style.cursor = 'zoom-out';
+      lightbox.onclick = () => { lightbox.style.display = 'none'; };
+      lightbox.innerHTML = `
+        <img id="lightbox-img" src="" style="max-width:90%; max-height:90%; border-radius: var(--r-md); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15);" />
+        <button style="position:fixed; top:20px; right:20px; background:rgba(255,255,255,0.1); border:none; color:white; font-size:24px; width:48px; height:48px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
+      `;
+      document.body.appendChild(lightbox);
+    }
+    document.getElementById('lightbox-img').src = imgUrl;
+    lightbox.style.display = 'flex';
   },
 
   _initSettingsModal() {
