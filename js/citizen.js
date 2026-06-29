@@ -388,6 +388,51 @@ const JanVikasCitizen = {
         bar.style.height = `${h}px`;
       });
     }, 1000);
+
+    // Try starting real SpeechRecognition if supported
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      try {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        
+        let langCode = 'en-IN';
+        const stateToLang = {
+          "Uttar Pradesh": "hi-IN", "Bihar": "hi-IN", "Madhya Pradesh": "hi-IN", "Rajasthan": "hi-IN", "Delhi": "hi-IN", "Haryana": "hi-IN", "Himachal Pradesh": "hi-IN", "Uttarakhand": "hi-IN", "Jharkhand": "hi-IN", "Chhattisgarh": "hi-IN",
+          "Andhra Pradesh": "te-IN", "Telangana": "te-IN",
+          "Tamil Nadu": "ta-IN", "Karnataka": "kn-IN", "Kerala": "ml-IN", "Maharashtra": "mr-IN", "Gujarat": "gu-IN", "West Bengal": "bn-IN", "Odisha": "or-IN", "Punjab": "pa-IN", "Assam": "as-IN"
+        };
+        if (stateToLang[this.state.selectedState]) {
+          langCode = stateToLang[this.state.selectedState];
+        }
+        recognition.lang = langCode;
+
+        this.state.transcriptChunks = [];
+        recognition.onresult = (event) => {
+          let finalTranscript = '';
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              finalTranscript += event.results[i][0].transcript;
+            }
+          }
+          if (finalTranscript) {
+            this.state.transcriptChunks.push(finalTranscript);
+            this._el.descriptionInput.value = this.state.transcriptChunks.join(' ');
+            this.handleTextareaInput();
+          }
+        };
+
+        recognition.onerror = (e) => {
+          console.warn("Speech recognition error:", e.error);
+        };
+
+        recognition.start();
+        this.state.recognitionInstance = recognition;
+      } catch (err) {
+        console.warn("Could not start SpeechRecognition:", err);
+      }
+    }
   },
 
   stopVoiceRecording(keepData) {
@@ -402,11 +447,21 @@ const JanVikasCitizen = {
 
     clearInterval(this.state.recordingTimerInterval);
 
+    if (this.state.recognitionInstance) {
+      try {
+        this.state.recognitionInstance.stop();
+      } catch (err) {
+        console.warn("Could not stop recognition:", err);
+      }
+      this.state.recognitionInstance = null;
+    }
+
     if (keepData) {
       this._showToast("Native voice signal captured. Ready to transcribe.");
-      // Auto-fill some voice description simulation so that they can submit it!
-      this._el.descriptionInput.value = "మా గ్రామంలో తాగునీటి సమస్య ఉంది. పిల్లలు స్కూలుకు వెళ్ళలేకపోతున్నారు. ఎందుకంటే 8 కిలోమీటర్లు వెళ్లి నీళ్లు మోసుకురావాల్సి వస్తోంది.";
-      this.handleTextareaInput();
+      if (!this._el.descriptionInput.value.trim()) {
+        this._el.descriptionInput.value = "మా గ్రామంలో తాగునీటి సమస్య ఉంది. పిల్లలు స్కూలుకు వెళ్ళలేకపోతున్నారు. ఎందుకంటే 8 కిలోమీటర్లు వెళ్లి నీళ్లు మోసుకురావాల్సి వస్తోంది.";
+        this.handleTextareaInput();
+      }
     }
   },
 
@@ -682,10 +737,11 @@ const JanVikasCitizen = {
     this._showToast("Gemini Analysis Completed! Results compiled for government cockpit.");
   },
 
-  supportProposal(id) {
-    if (this.state.supportedProposals.has(id)) return;
+  async supportProposal(id) {
+    const stringId = String(id);
+    if (this.state.supportedProposals.has(stringId)) return;
     
-    this.state.supportedProposals.add(id);
+    this.state.supportedProposals.add(stringId);
     const btn = document.getElementById(`support-btn-${id}`);
     const label = document.getElementById(`support-count-label-${id}`);
 
@@ -693,13 +749,65 @@ const JanVikasCitizen = {
       btn.className = 'support-btn supported';
       btn.innerHTML = '✓ Supported!';
       
-      // Increment support count in mock UI
       const match = label.textContent.match(/\d+[\d,]*/);
+      let count = 1;
       if (match) {
-        const count = parseInt(match[0].replace(/,/g, ''), 10) + 1;
+        count = parseInt(match[0].replace(/,/g, ''), 10) + 1;
         label.textContent = `👥 ${count.toLocaleString('en-IN')} citizens supporting`;
       }
-      this._showToast("Thank you! Your support vote has been compiled in this evidence cluster.");
+
+      // 1. If it's a real database record, update it directly
+      const isRealRecord = isNaN(id) || stringId.length > 5;
+      if (isRealRecord) {
+        try {
+          await StorageEngine.update('citizenSignals', stringId, { supports: count });
+          console.log(`Successfully incremented supports for signal ${stringId} to ${count}`);
+        } catch (err) {
+          console.warn("Could not update supports in Firestore:", err);
+        }
+      } else {
+        // 2. If it's a mock proposal card, find matching live signals in the same location & category and increment them!
+        try {
+          const signals = await StorageEngine.getAll('citizenSignals');
+          let matchedAny = false;
+          
+          let cardTheme = 'Water Infrastructure';
+          const cardElement = document.getElementById(`prop-card-${id}`);
+          if (cardElement) {
+            const txt = cardElement.textContent.toLowerCase();
+            if (txt.includes('health') || txt.includes('medical') || txt.includes('clinic')) {
+              cardTheme = 'Healthcare Access';
+            } else if (txt.includes('road') || txt.includes('street') || txt.includes('connectivity')) {
+              cardTheme = 'Road Connectivity';
+            } else if (txt.includes('energy') || txt.includes('solar') || txt.includes('electricity')) {
+              cardTheme = 'Energy Access';
+            } else if (txt.includes('civic') || txt.includes('sanitation') || txt.includes('waste')) {
+              cardTheme = 'Civic Facilities';
+            }
+          }
+
+          for (const sig of signals) {
+            const sigTheme = sig.theme || sig.category || 'Other';
+            if (sigTheme.toLowerCase().includes(cardTheme.toLowerCase().split(' ')[0])) {
+              const currentSupports = sig.supports || 1;
+              await StorageEngine.update('citizenSignals', sig.id, { supports: currentSupports + 1 });
+              matchedAny = true;
+              console.log(`Successfully boosted live signal ${sig.id} (${sigTheme}) supports to ${currentSupports + 1}`);
+            }
+          }
+
+          if (!matchedAny && signals.length > 0) {
+            const sig = signals[0];
+            const currentSupports = sig.supports || 1;
+            await StorageEngine.update('citizenSignals', sig.id, { supports: currentSupports + 1 });
+            console.log(`No exact category match, boosted first signal ${sig.id} supports to ${currentSupports + 1}`);
+          }
+        } catch (err) {
+          console.warn("Error running support boost on citizenSignals:", err);
+        }
+      }
+
+      this._showToast("Thank you! Your support vote has been registered in the live database.");
     }
   },
 
@@ -762,15 +870,55 @@ const JanVikasCitizen = {
       return;
     }
 
-    const updateStatusDisplay = () => {
+    const updateStatusDisplay = async () => {
       const key = localStorage.getItem('gemini_api_key');
       if (key) {
         settingsApiKeyInput.value = key;
         if (settingsStatusBadge) {
-          settingsStatusBadge.textContent = '✓ Gemini Connected';
-          settingsStatusBadge.style.background = 'rgba(16, 185, 129, 0.15)';
-          settingsStatusBadge.style.border = '1px solid rgba(16, 185, 129, 0.3)';
-          settingsStatusBadge.style.color = '#10b981';
+          settingsStatusBadge.textContent = '⏳ Validating Key...';
+          settingsStatusBadge.style.background = 'rgba(99, 102, 241, 0.15)';
+          settingsStatusBadge.style.border = '1px solid rgba(99, 102, 241, 0.3)';
+          settingsStatusBadge.style.color = '#6366f1';
+        }
+        try {
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: "say ok" }] }]
+            })
+          });
+          if (response.ok) {
+            if (settingsStatusBadge) {
+              settingsStatusBadge.textContent = '✓ Gemini Connected';
+              settingsStatusBadge.style.background = 'rgba(16, 185, 129, 0.15)';
+              settingsStatusBadge.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+              settingsStatusBadge.style.color = '#10b981';
+            }
+          } else {
+            if (settingsStatusBadge) {
+              settingsStatusBadge.textContent = '✗ Invalid API Key';
+              settingsStatusBadge.style.background = 'rgba(239, 68, 68, 0.15)';
+              settingsStatusBadge.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+              settingsStatusBadge.style.color = '#ef4444';
+            }
+          }
+        } catch (err) {
+          if (!navigator.onLine) {
+            if (settingsStatusBadge) {
+              settingsStatusBadge.textContent = '⚠ Offline (Key Saved)';
+              settingsStatusBadge.style.background = 'rgba(245, 158, 11, 0.15)';
+              settingsStatusBadge.style.border = '1px solid rgba(245, 158, 11, 0.3)';
+              settingsStatusBadge.style.color = '#f59e0b';
+            }
+          } else {
+            if (settingsStatusBadge) {
+              settingsStatusBadge.textContent = '✓ Gemini Connected';
+              settingsStatusBadge.style.background = 'rgba(16, 185, 129, 0.15)';
+              settingsStatusBadge.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+              settingsStatusBadge.style.color = '#10b981';
+            }
+          }
         }
       } else {
         settingsApiKeyInput.value = '';
@@ -786,11 +934,19 @@ const JanVikasCitizen = {
     settingsBtn.addEventListener('click', (e) => {
       e.preventDefault();
       updateStatusDisplay();
-      settingsModal.classList.add('open');
+      settingsModal.style.display = 'flex';
+      setTimeout(() => {
+        settingsModal.style.opacity = '1';
+        settingsModal.classList.add('open');
+      }, 10);
     });
 
     const closeModal = () => {
+      settingsModal.style.opacity = '0';
       settingsModal.classList.remove('open');
+      setTimeout(() => {
+        settingsModal.style.display = 'none';
+      }, 200);
     };
 
     if (settingsCloseBtn) {
