@@ -13,15 +13,29 @@ import { AIEngine } from './ai-engine.js';
 const JanVikasCitizen = {
   /* ─── Hierarchical Location Datasets ─────────────────── */
   locationData: {
-    "Uttar Pradesh": {
-      "Tikamgarh": {
-        "Tikamgarh Block": ["Ward 4 - Gidkhini Village", "Ward 12 - Tikamgarh Town", "Kharagpur Panchayat"],
-        "Niwari Block": ["Ward 1 - Niwari Proper", "Orchha Heritage Ward", "Prithvipur Village"],
-        "Lalitpur Block": ["Ward 8 - Lalitpur Town", "Maharoni Panchayat", "Talbehat Village Grid"]
+    "Andhra Pradesh": {
+      "Visakhapatnam": {
+        "Visakhapatnam Urban": ["Ward 5 - Beach Road Area", "Ward 12 - Madhurawada Sector", "Gajuwaka Industrial Ward"],
+        "Anakapalli Block": ["Ward 2 - Anakapalli Town", "Munagapaka Village Panchayat", "Kasimkota Local Grid"]
       },
-      "Jhansi": {
-        "Jhansi Sadar": ["Ward 15 - Jhansi Fort", "Sipri Bazar Ward", "Baragaon Block"],
-        "Mauranipur": ["Ward 5 - Mauranipur Proper", "Gursarai Panchayat", "Ranipur Handloom Grid"]
+      "Anantapur": {
+        "Dharmavaram": ["Ward 8 - Silk Weavers Grid", "Dharmavaram Town Centre", "Battalapalli Panchayat"],
+        "Hindupur": ["Ward 4 - Hindupur Proper", "Lepakshi Heritage Sector", "Chilamathur Block"]
+      }
+    },
+    "Arunachal Pradesh": {
+      "Itanagar Capital Complex": {
+        "Itanagar Block": ["Ward 1 - Ganga Market", "Ward 3 - Niti Vihar Sector", "Chimpu Gram Panchayat"],
+        "Naharlagun Block": ["Ward 7 - Naharlagun Town", "Nirjuli Village Cluster", "Banderdewa Checkpoint Ward"]
+      }
+    },
+    "Assam": {
+      "Kamrup Metropolitan": {
+        "Guwahati Municipal Corp": ["Ward 15 - Paltan Bazar Area", "Ward 22 - Dispur Secretariat Area", "Ward 31 - Maligaon Junction Area"],
+        "Azara Block": ["Ward 2 - Azara proper", "Dharapur Panchayat", "Kahikuchi Village Grid"]
+      },
+      "Dibrugarh": {
+        "Dibrugarh Sadar": ["Ward 4 - Dibrugarh University Sector", "Ward 8 - Marwari Patty", "Barbaruah Panchayat"]
       }
     },
     "Bihar": {
@@ -35,11 +49,213 @@ const JanVikasCitizen = {
         "Phulwari Sharif": ["Ward 3 - Phulwari Sharif", "Khagaul Block", "Janipur Gram Panchayat"]
       }
     },
+    "Chhattisgarh": {
+      "Raipur": {
+        "Raipur Municipal Corp": ["Ward 12 - Shastri Chowk Area", "Ward 18 - Tatibandh Sector", "Abhanpur Village Panchayat"],
+        "Arang Block": ["Ward 5 - Arang Town", "Mandir Hasaud Panchayat", "Kharora Village Grid"]
+      }
+    },
+    "Goa": {
+      "North Goa": {
+        "Panaji Block": ["Ward 3 - Miramar Beach Area", "Ward 9 - Fontainhas Heritage Quarter", "Taleigao Panchayat"],
+        "Mapusa Block": ["Ward 2 - Mapusa Municipal Area", "Calangute Village Grid", "Anjuna Coast Sector"]
+      },
+      "South Goa": {
+        "Margao Block": ["Ward 7 - Margao Railway Area", "Fatorda Sports Complex Ward", "Curtorim Village Grid"]
+      }
+    },
+    "Gujarat": {
+      "Ahmedabad": {
+        "Ahmedabad Municipal Corp": ["Ward 4 - Vastrapur Area", "Ward 15 - Maninagar Sector", "Nikol Development Grid"],
+        "Sanand Block": ["Ward 1 - Sanand Town", "Sanand GIDC Industrial Ward", "Changodar Panchayat"]
+      },
+      "Surat": {
+        "Surat Municipal Corp": ["Ward 10 - Adajan Area", "Ward 24 - Varachha Sector", "Katargam Diamond Ward"]
+      }
+    },
+    "Haryana": {
+      "Gurugram": {
+        "Gurugram Municipal Corp": ["Ward 11 - DLF Sector 25 Area", "Ward 18 - Sohna Road Corridor", "Pataudi Rural Panchayat"],
+        "Sohna Block": ["Ward 3 - Sohna Town", "Sohna GIDC Sector", "Bhondsi Village Grid"]
+      }
+    },
+    "Himachal Pradesh": {
+      "Shimla": {
+        "Shimla Municipal Corp": ["Ward 2 - Mall Road Area", "Ward 8 - Chhota Shimla Sector", "Dhalli Panchayat Area"],
+        "Rampur Block": ["Ward 1 - Rampur Bushahr", "Nankhari Village Cluster", "Sarahan Temple Ward"]
+      }
+    },
+    "Jharkhand": {
+      "Ranchi": {
+        "Ranchi Municipal Corp": ["Ward 14 - Lalpur Chowk Area", "Ward 22 - Kanke Road Sector", "Hatla Block Panchayat"],
+        "Bundu Block": ["Ward 2 - Bundu Town", "Tamar Gram Panchayat", "Sonahatu Village Grid"]
+      }
+    },
+    "Karnataka": {
+      "Bengaluru Urban": {
+        "BBMP Central": ["Ward 77 - Indiranagar Area", "Ward 150 - Bellandur Tech Corridor", "Ward 198 - Electronic City Sector"],
+        "Yelahanka Block": ["Ward 4 - Yelahanka New Town", "Bagalur Village Panchayat", "Doddaballapur Industrial Ward"]
+      },
+      "Mysuru": {
+        "Mysuru Municipal Corp": ["Ward 11 - Palace Sector Area", "Gokulam Residential Ward", "Chamundi Hill Panchayat"]
+      }
+    },
+    "Kerala": {
+      "Thiruvananthapuram": {
+        "Trivandrum Corp": ["Ward 14 - Kowdiar Palace Area", "Ward 35 - Kazhakkoottam Techpark", "Vizhinjam Port Area Ward"],
+        "Neyyattinkara Block": ["Ward 2 - Neyyattinkara Town", "Parassala Village Panchayat", "Balaramapuram Handloom Ward"]
+      }
+    },
+    "Madhya Pradesh": {
+      "Indore": {
+        "Indore Municipal Corp": ["Ward 18 - Vijay Nagar Sector", "Ward 32 - Rajwada Area", "Mhow Cantonment Ward"],
+        "Depalpur Block": ["Ward 3 - Depalpur Town", "Betma Panchayat Area", "Gautampura Village Grid"]
+      },
+      "Tikamgarh": {
+        "Tikamgarh Block": ["Ward 4 - Gidkhini Village", "Ward 12 - Tikamgarh Town", "Kharagpur Panchayat"],
+        "Niwari Block": ["Ward 1 - Niwari Proper", "Orchha Heritage Ward", "Prithvipur Village"]
+      }
+    },
+    "Maharashtra": {
+      "Mumbai City": {
+        "MCGM Central": ["Ward A - Colaba Area", "Ward F/North - Matunga Sector", "Ward G/South - Elphinstone Area"],
+        "Dharavi Block": ["Ward 1 - Dharavi Main Sector", "Koliwada Fishing Ward", "Shahu Nagar Area"]
+      },
+      "Pune": {
+        "Pune Municipal Corp": ["Ward 12 - Koregaon Park Area", "Ward 25 - Hinjawadi Tech Sector", "Hadapsar Industrial Ward"]
+      }
+    },
+    "Manipur": {
+      "Imphal West": {
+        "Imphal Municipal Corp": ["Ward 3 - Kangla Fort Sector", "Ward 7 - Babupatty Area", "Lilong Chajijing Panchayat"],
+        "Wangoi Block": ["Ward 2 - Wangoi Proper", "Samurou Village Grid", "Mayang Imphal Block"]
+      }
+    },
+    "Meghalaya": {
+      "East Khasi Hills": {
+        "Shillong Municipal Board": ["Ward 4 - Police Bazar Area", "Ward 9 - Laitumkhrah Sector", "Mawlai Gram Panchayat"],
+        "Sohra Block": ["Ward 1 - Cherrapunjee Proper", "Shella Village Panchayat", "Mawsynram Deficit Grid"]
+      }
+    },
+    "Mizoram": {
+      "Aizawl": {
+        "Aizawl Municipal Corp": ["Ward 2 - Chanmari Area", "Ward 8 - Tuikual Sector", "Zemabawk Village Panchayat"]
+      }
+    },
+    "Nagaland": {
+      "Kohima": {
+        "Kohima Municipal Council": ["Ward 3 - Officers Hill", "Ward 7 - Midland Area", "Mawlai Local Panchayat"],
+        "Chiephobozou Block": ["Ward 2 - Chiephobozou Town", "Nerhema Village Grid", "Tseminyu Border Sector"]
+      }
+    },
     "Odisha": {
+      "Khordha": {
+        "Bhubaneswar Municipal Corp": ["Ward 12 - Saheed Nagar Area", "Ward 33 - Patia Tech Corridor", "Jatni Railway Junction Grid"],
+        "Khordha Sadar": ["Ward 4 - Khordha Town", "Begunia Block Panchayat", "Bolagarh Gram Panchayat"]
+      },
       "Koraput": {
         "Koraput Block": ["Ward 3 - Pujariput", "Ward 8 - Koraput Town", "Damanjodi Panchayat"],
-        "Jeypore Block": ["Ward 14 - Jeypore Town", "Borigumma Block", "Kundura Gram Panchayat"],
-        "Semiliguda": ["Ward 5 - Semiliguda Main", "Sunabeda Aerospace Ward", "Pottangi Village"]
+        "Jeypore Block": ["Ward 14 - Jeypore Town", "Borigumma Block", "Kundura Gram Panchayat"]
+      }
+    },
+    "Punjab": {
+      "Amritsar": {
+        "Amritsar Municipal Corp": ["Ward 5 - Golden Temple Sector", "Ward 12 - Lawrence Road Area", "Attari Border Village Grid"],
+        "Ajnala Block": ["Ward 1 - Ajnala Town", "Ramdas Panchayat Area", "Chogawan Block"]
+      }
+    },
+    "Rajasthan": {
+      "Jaipur": {
+        "Jaipur Municipal Corp": ["Ward 18 - C-Scheme Area", "Ward 35 - Malviya Nagar Sector", "Sanganer Handloom Ward"],
+        "Chomu Block": ["Ward 3 - Chomu Town", "Govindgarh Village Grid", "Kaladera Industrial Ward"]
+      },
+      "Barmer": {
+        "Barmer Block": ["Ward 1 - Barmer Proper", "Balotra Panchayat", "Sheo Gram Panchayat"]
+      }
+    },
+    "Sikkim": {
+      "Gangtok": {
+        "Gangtok Municipal Corp": ["Ward 3 - MG Marg Area", "Ward 8 - Deorali Sector", "Ranipool Development Grid"]
+      }
+    },
+    "Tamil Nadu": {
+      "Chennai": {
+        "GCC Central": ["Ward 104 - Nungambakkam Area", "Ward 134 - T-Nagar Retail Sector", "Ward 179 - Adyar Tech Hub"],
+        "Ambattur Block": ["Ward 5 - Ambattur Industrial Estate", "Avadi Development Grid", "Maduravoyal Panchayat"]
+      }
+    },
+    "Telangana": {
+      "Hyderabad": {
+        "GHMC Central": ["Ward 12 - Banjara Hills Area", "Ward 45 - Gachibowli Tech Corridor", "Ward 89 - Secunderabad Station Area"],
+        "Rajendranagar Block": ["Ward 2 - Rajendranagar Town", "Shamshabad Airport Sector", "Moinabad Village Grid"]
+      }
+    },
+    "Tripura": {
+      "West Tripura": {
+        "Agartala Municipal Corp": ["Ward 4 - Ramnagar Area", "Ward 11 - Banamalipur Sector", "Ranirbazar Panchayat"]
+      }
+    },
+    "Uttar Pradesh": {
+      "Jhansi": {
+        "Jhansi Sadar": ["Ward 15 - Jhansi Fort", "Sipri Bazar Ward", "Baragaon Block"],
+        "Mauranipur": ["Ward 5 - Mauranipur Proper", "Gursarai Panchayat", "Ranipur Handloom Grid"]
+      },
+      "Gautam Buddha Nagar": {
+        "Noida Sector 62": ["Ward 1 - Sector 62 Hub", "Ward 4 - Mamura Village", "Ward 12 - Khoda Colony"]
+      }
+    },
+    "Uttarakhand": {
+      "Dehradun": {
+        "Dehradun Municipal Corp": ["Ward 4 - Rajpur Road Area", "Ward 15 - Clement Town Sector", "Mussoorie Tourist Ward"],
+        "Vikasnagar Block": ["Ward 2 - Vikasnagar Town", "Dakpathar Panchayat Grid", "Kalsi Tribal Block"]
+      }
+    },
+    "West Bengal": {
+      "Kolkata": {
+        "KMC Central": ["Ward 63 - Park Street Area", "Ward 89 - Salt Lake Sector V", "Ward 110 - Garia Residential Sector"],
+        "Rajarhat Block": ["Ward 3 - Newtown Tech Hub", "Rajarhat Gopalpur Area", "Bhangar Panchayat Grid"]
+      }
+    },
+    "Andaman and Nicobar Islands": {
+      "South Andaman": {
+        "Port Blair Block": ["Ward 2 - Aberdeen Bazar Area", "Ward 8 - Dollygunj Industrial Area", "Garacharma Gram Panchayat"]
+      }
+    },
+    "Chandigarh": {
+      "Chandigarh District": {
+        "Chandigarh Capital": ["Sector 17 Commercial Ward", "Sector 35 Residential Sector", "Sarangpur Village Grid"]
+      }
+    },
+    "Dadra and Nagar Haveli and Daman and Diu": {
+      "Dadra and Nagar Haveli": {
+        "Silvassa Block": ["Ward 3 - Silvassa Industrial Area", "Masat Panchayat Area", "Rakholi Gram Panchayat"]
+      }
+    },
+    "Delhi": {
+      "New Delhi": {
+        "NDMC Area": ["Ward 1 - Connaught Place Sector", "Ward 4 - Chanakyapuri Diplomatic Enclave", "Ward 8 - Khan Market Area"],
+        "Dwarka Block": ["Ward 15 - Dwarka Sector 10 Area", "Ward 22 - Dwarka Sector 21 Sector", "Palam Gram Panchayat"]
+      }
+    },
+    "Jammu and Kashmir": {
+      "Srinagar": {
+        "Srinagar Municipal Corp": ["Ward 3 - Lal Chowk Area", "Ward 9 - Dal Lake Boulevard", "Hazratbal Area Ward"],
+        "Ganderbal Block": ["Ward 1 - Ganderbal Proper", "Kangan Mountain Sector", "Lar Panchayat Grid"]
+      }
+    },
+    "Ladakh": {
+      "Leh": {
+        "Leh Town Council": ["Ward 2 - Leh Main Bazar Area", "Choglamsar Village Grid", "Shey Gram Panchayat"]
+      }
+    },
+    "Lakshadweep": {
+      "Kavaratti": {
+        "Kavaratti Island": ["Ward 1 - Administrative Sector", "Ward 3 - Fishing Harbour Area", "Ward 5 - Beach Resort Grid"]
+      }
+    },
+    "Puducherry": {
+      "Pondicherry District": {
+        "Pondicherry Municipal Area": ["Ward 3 - French Quarter Area", "Ward 8 - Heritage Sector", "Auroville Outer Border Grid"]
       }
     }
   },
@@ -51,9 +267,9 @@ const JanVikasCitizen = {
     recordingSeconds: 0,
     recordingTimerInterval: null,
     uploadedFiles: [],
-    selectedState: 'Uttar Pradesh',
-    selectedDistrict: 'Tikamgarh',
-    selectedCity: 'Tikamgarh Block',
+    selectedState: 'Andhra Pradesh',
+    selectedDistrict: 'Visakhapatnam',
+    selectedCity: 'Visakhapatnam Urban',
     supportedProposals: new Set()
   },
 
@@ -66,6 +282,7 @@ const JanVikasCitizen = {
     this._bindEvents();
     this._populateStates();
     Utils.initClock('portal-clock');
+    this._initSettingsModal();
     this.resetForm();
   },
 
@@ -528,6 +745,103 @@ const JanVikasCitizen = {
     toast.style.opacity = '1';
     clearTimeout(toast._timer);
     toast._timer = setTimeout(() => { toast.style.opacity = '0'; }, 3500);
+  },
+
+  _initSettingsModal() {
+    const settingsBtn = document.getElementById('settings-btn');
+    const settingsModal = document.getElementById('settings-modal');
+    const settingsCloseBtn = document.getElementById('settings-modal-close');
+    const settingsSaveBtn = document.getElementById('settings-save-btn');
+    const settingsClearBtn = document.getElementById('settings-clear-btn');
+    const settingsApiKeyInput = document.getElementById('settings-api-key');
+    const settingsStatusBadge = document.getElementById('settings-engine-status');
+    const toggleVisibilityBtn = document.getElementById('toggle-key-visibility');
+
+    if (!settingsBtn || !settingsModal) {
+      console.warn("Settings button or modal not found on page");
+      return;
+    }
+
+    const updateStatusDisplay = () => {
+      const key = localStorage.getItem('gemini_api_key');
+      if (key) {
+        settingsApiKeyInput.value = key;
+        if (settingsStatusBadge) {
+          settingsStatusBadge.textContent = '✓ Gemini Connected';
+          settingsStatusBadge.style.background = 'rgba(16, 185, 129, 0.15)';
+          settingsStatusBadge.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+          settingsStatusBadge.style.color = '#10b981';
+        }
+      } else {
+        settingsApiKeyInput.value = '';
+        if (settingsStatusBadge) {
+          settingsStatusBadge.textContent = '⚠ Gemini API Key Missing';
+          settingsStatusBadge.style.background = 'rgba(245, 158, 11, 0.15)';
+          settingsStatusBadge.style.border = '1px solid rgba(245, 158, 11, 0.3)';
+          settingsStatusBadge.style.color = '#f59e0b';
+        }
+      }
+    };
+
+    settingsBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      updateStatusDisplay();
+      settingsModal.style.display = 'flex';
+      setTimeout(() => {
+        settingsModal.style.opacity = '1';
+      }, 10);
+    });
+
+    const closeModal = () => {
+      settingsModal.style.opacity = '0';
+      setTimeout(() => {
+        settingsModal.style.display = 'none';
+      }, 200);
+    };
+
+    if (settingsCloseBtn) {
+      settingsCloseBtn.addEventListener('click', closeModal);
+    }
+
+    settingsModal.addEventListener('click', (e) => {
+      if (e.target === settingsModal) {
+        closeModal();
+      }
+    });
+
+    if (settingsSaveBtn) {
+      settingsSaveBtn.addEventListener('click', () => {
+        const newKey = settingsApiKeyInput.value.trim();
+        if (newKey) {
+          localStorage.setItem('gemini_api_key', newKey);
+          updateStatusDisplay();
+          this._showToast('Gemini API Key saved successfully! The AI Engine has automatically reconnected.');
+          closeModal();
+        } else {
+          alert('Please enter a valid API Key first.');
+        }
+      });
+    }
+
+    if (settingsClearBtn) {
+      settingsClearBtn.addEventListener('click', () => {
+        localStorage.removeItem('gemini_api_key');
+        updateStatusDisplay();
+        this._showToast('Gemini API Key removed. Fell back to the local NLP rules engine.');
+        closeModal();
+      });
+    }
+
+    if (toggleVisibilityBtn && settingsApiKeyInput) {
+      toggleVisibilityBtn.addEventListener('click', () => {
+        const type = settingsApiKeyInput.type === 'password' ? 'text' : 'password';
+        settingsApiKeyInput.type = type;
+        toggleVisibilityBtn.textContent = type === 'password' ? '👁️' : '🔒';
+      });
+    }
+
+    // Set initial status display on page load
+    updateStatusDisplay();
   }
 };
 
