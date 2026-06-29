@@ -799,7 +799,28 @@
         <form id="evidence-intake-form" onsubmit="JanVikasCitizen.handleFormSubmit(event)">
           
           <!-- VOICE RECORDER FIELD -->
-          <div class="voice-module" id="voice-entry-area" style="display: none;">
+          <div class="voice-module" id="voice-entry-area" style="display: none; flex-direction: column; align-items: center; gap: 12px;">
+            
+            <!-- Language Selector -->
+            <div style="width: 100%; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; margin-bottom: 8px;">
+              <span style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Speech Recognition Language</span>
+              <select class="loc-select" id="voice-language-select" style="width: 100%; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-primary); padding: 8px 12px; border-radius: var(--r-md); outline: none;">
+                <option value="auto">Auto-Detect based on State</option>
+                <option value="en-IN">English (India)</option>
+                <option value="hi-IN">Hindi (हिन्दी)</option>
+                <option value="te-IN">Telugu (తెలుగు)</option>
+                <option value="bn-IN">Bengali (বাংলা)</option>
+                <option value="ta-IN">Tamil (தமிழ்)</option>
+                <option value="mr-IN">Marathi (मराठी)</option>
+                <option value="kn-IN">Kannada (ಕನ್ನಡ)</option>
+                <option value="gu-IN">Gujarati (ગુજરાતી)</option>
+                <option value="ml-IN">Malayalam (മലയാളം)</option>
+                <option value="or-IN">Odia (ଓଡ଼ିଆ)</option>
+                <option value="pa-IN">Punjabi (ਪੰਜਾਬী)</option>
+                <option value="as-IN">Assamese (অসমীয়া)</option>
+              </select>
+            </div>
+
             <button type="button" class="mic-button" id="mic-toggle" onclick="JanVikasCitizen.toggleVoiceRecording()">
               <span class="mic-icon">🎙️</span>
             </button>
@@ -814,7 +835,41 @@
               <div class="wave-bar"></div>
               <div class="wave-bar"></div>
             </div>
-            <div style="font-size: 11px; color: var(--text-tertiary); max-width: 320px; margin-top: 14px; line-height: 1.4;">
+
+            <!-- Voice Transcript Confirmation Area -->
+            <div id="voice-confirmation-area" style="display: none; width: 100%; margin-top: 16px; padding: 16px; background: rgba(30, 41, 59, 0.3); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: var(--r-md); flex-direction: column; gap: 12px; text-align: left;">
+              <div style="font-weight: 600; font-size: 13px; color: var(--indigo-300); display: flex; align-items: center; gap: 6px;">
+                <span>🎙️</span> Speech Recognition Result
+              </div>
+              
+              <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 11px; color: var(--text-tertiary); font-weight: 500;">Original Transcript (Editable)</label>
+                <textarea id="voice-original-transcript" class="portal-textarea" style="min-height: 60px; font-size: 12px; background: rgba(0,0,0,0.3);" placeholder="Recognized speech will appear here..."></textarea>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
+                <div>
+                  <span style="color: var(--text-tertiary);">Language:</span>
+                  <span id="voice-detected-lang" style="color: var(--text-primary); font-weight: 600; margin-left: 4px;">Detecting...</span>
+                </div>
+                <div>
+                  <span style="color: var(--text-tertiary);">Confidence:</span>
+                  <span id="voice-confidence" style="color: #10b981; font-weight: 600; margin-left: 4px;">--</span>
+                </div>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; background: rgba(255,255,255,0.02); border-radius: var(--r-sm); padding: 8px 10px; border-left: 2px solid var(--indigo-500);">
+                <span id="voice-translation-label" style="font-size: 10px; color: var(--text-tertiary); font-weight: 600; text-transform: uppercase;">English Translation</span>
+                <p id="voice-translation-text" style="color: var(--text-primary); margin: 0; line-height: 1.4;">Waiting for translation...</p>
+              </div>
+
+              <div style="display: flex; gap: 8px; margin-top: 4px;">
+                <button type="button" class="btn btn-secondary" style="flex: 1; padding: 8px; font-size: 12px;" onclick="JanVikasCitizen.recordAgain()">🎤 Record Again</button>
+                <button type="button" class="btn btn-primary" style="flex: 1; padding: 8px; font-size: 12px;" onclick="JanVikasCitizen.useTranscript()">✓ Use Transcript</button>
+              </div>
+            </div>
+
+            <div style="font-size: 11px; color: var(--text-tertiary); max-width: 320px; margin-top: 14px; line-height: 1.4; text-align: center;">
               Supports 22 languages including Hindi, Telugu, Tamil, Bengali, Marathi, and Kannada. Auto-translated by Gemini.
             </div>
           </div>
