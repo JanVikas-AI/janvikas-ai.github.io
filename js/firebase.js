@@ -105,6 +105,17 @@ export const StorageEngine = {
     // Always log in local storage for instant offline resilience
     localDB.insert(collectionName, payload);
 
+    // Broadcast synchronization message for multi-tab synchronization
+    if (window.BroadcastChannel) {
+      try {
+        const bc = new BroadcastChannel('janvikas_channel');
+        bc.postMessage({ type: 'update', collectionName, id: payload.id });
+        bc.close();
+      } catch (bcErr) {
+        console.warn('BroadcastChannel sync failed:', bcErr);
+      }
+    }
+
     if (this.isOnline()) {
       try {
         const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
@@ -157,6 +168,17 @@ export const StorageEngine = {
     await this.ensureReady();
     localDB.update(collectionName, id, updates);
 
+    // Broadcast synchronization message for multi-tab synchronization
+    if (window.BroadcastChannel) {
+      try {
+        const bc = new BroadcastChannel('janvikas_channel');
+        bc.postMessage({ type: 'update', collectionName, id });
+        bc.close();
+      } catch (bcErr) {
+        console.warn('BroadcastChannel sync failed:', bcErr);
+      }
+    }
+
     if (this.isOnline()) {
       try {
         const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
@@ -179,12 +201,46 @@ export const StorageEngine = {
     const cached = localDB.get(collectionName);
     onUpdate(cached);
 
+    let unsubscribed = false;
+
+    // Local multi-tab and multi-window event listener setup
+    const bcListener = (event) => {
+      if (unsubscribed) return;
+      if (event.data && event.data.collectionName === collectionName) {
+        const latest = localDB.get(collectionName);
+        onUpdate(latest);
+      }
+    };
+
+    let bc = null;
+    if (window.BroadcastChannel) {
+      try {
+        bc = new BroadcastChannel('janvikas_channel');
+        bc.addEventListener('message', bcListener);
+      } catch (bcErr) {
+        console.warn('BroadcastChannel registration failed:', bcErr);
+      }
+    }
+
+    const storageListener = (event) => {
+      if (unsubscribed) return;
+      // localStorage is saved as 'jv_${collectionName}' in localDB implementation
+      if (event.key === `jv_${collectionName}`) {
+        const latest = localDB.get(collectionName);
+        onUpdate(latest);
+      }
+    };
+    window.addEventListener('storage', storageListener);
+
+    let cloudUnsubscribe = () => {};
+
     if (this.isOnline()) {
       try {
         const { collection, onSnapshot, query, orderBy } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
         const q = query(collection(db, collectionName), orderBy('timestamp', 'desc'));
         
-        return onSnapshot(q, (snapshot) => {
+        cloudUnsubscribe = onSnapshot(q, (snapshot) => {
+          if (unsubscribed) return;
           const list = [];
           snapshot.forEach((doc) => {
             list.push(doc.data());
@@ -200,6 +256,19 @@ export const StorageEngine = {
         if (onError) onError(e);
       }
     }
-    return () => {}; // return unsubscriber stub
+
+    return () => {
+      unsubscribed = true;
+      if (bc) {
+        try {
+          bc.removeEventListener('message', bcListener);
+          bc.close();
+        } catch (bcErr) {
+          console.warn('BroadcastChannel teardown failed:', bcErr);
+        }
+      }
+      window.removeEventListener('storage', storageListener);
+      cloudUnsubscribe();
+    };
   }
 };
