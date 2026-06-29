@@ -841,6 +841,11 @@
               <div style="font-weight: 600; font-size: 13px; color: var(--indigo-300); display: flex; align-items: center; gap: 6px;">
                 <span>🎙️</span> Speech Recognition Result
               </div>
+
+              <!-- Low Confidence Warning -->
+              <div id="voice-warning" style="display: none; padding: 10px 12px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: var(--r-sm); color: #f87171; font-size: 11px; font-weight: 500; align-items: center; gap: 6px; line-height: 1.4;">
+                ⚠️ Speech could not be recognized clearly. Please choose to "Retry Recording" or edit the transcript manually below.
+              </div>
               
               <div style="display: flex; flex-direction: column; gap: 4px;">
                 <label style="font-size: 11px; color: var(--text-tertiary); font-weight: 500;">Original Transcript (Editable)</label>
@@ -864,7 +869,7 @@
               </div>
 
               <div style="display: flex; gap: 8px; margin-top: 4px;">
-                <button type="button" class="btn btn-secondary" style="flex: 1; padding: 8px; font-size: 12px;" onclick="JanVikasCitizen.recordAgain()">🎤 Record Again</button>
+                <button type="button" class="btn btn-secondary" style="flex: 1; padding: 8px; font-size: 12px;" onclick="JanVikasCitizen.recordAgain()">🎤 Retry Recording</button>
                 <button type="button" class="btn btn-primary" style="flex: 1; padding: 8px; font-size: 12px;" onclick="JanVikasCitizen.useTranscript()">✓ Use Transcript</button>
               </div>
             </div>
@@ -941,14 +946,6 @@
               <div class="loc-group">
                 <span class="loc-label">Block / City</span>
                 <select class="loc-select" id="loc-city" onchange="JanVikasCitizen.onCityChange(this.value)">
-                  <!-- Populate dynamically -->
-                </select>
-              </div>
-
-              <!-- WARD/VILLAGE -->
-              <div class="loc-group">
-                <span class="loc-label">Ward / Village</span>
-                <select class="loc-select" id="loc-ward">
                   <!-- Populate dynamically -->
                 </select>
               </div>
