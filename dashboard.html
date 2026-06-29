@@ -8,6 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin="">
   <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/dashboard.css">
 </head>
 <body>
 
@@ -146,7 +147,7 @@
           🔔
           <span class="notif-dot"></span>
         </div>
-        <div class="icon-btn" title="Settings">⚙️</div>
+        <div class="icon-btn" title="Settings" id="settings-btn">⚙️</div>
         <div class="icon-btn" title="Export" id="export-pdf-btn">📤</div>
       </div>
     </div>
@@ -500,7 +501,7 @@
             <div class="signal-item-v2">
               <div class="signal-original">
                 <div class="signal-orig-label">Original · Odia</div>
-                <div class="signal-orig-text">"ଆମ ଗ୍ରାମ ବର୍ଷା ଋତୁରେ ବିଚ୍ଛିନ୍ନ ହୋଇଯାଏ। ରାସ୍ତା ଦରକାର।"</div>
+                <div class="signal-orig-text">"ଆମ ଗ୍ରାମ ବର୍ଷା ଋତుରେ ବିଚ୍ଛିନ୍ନ ହୋଇଯାଏ। ରାସ୍ତା ଦରକାର।"</div>
               </div>
               <div class="signal-translated">
                 <div class="signal-trans-label"><span>🔄</span> Gemini Translation · English</div>
@@ -540,7 +541,7 @@
             <div class="signal-item-v2" style="border-color:rgba(16,185,129,0.2);">
               <div class="signal-original" style="border-bottom-color:rgba(16,185,129,0.08);">
                 <div class="signal-orig-label">Outcome Report · Bengali</div>
-                <div class="signal-orig-text">"নতুন রাস্তা হওয়ার পর অ্যাম্বুলেন্স আসতে পারছে। বাজারেও যাওয়া সহজ হয়েছে।"</div>
+                <div class="signal-orig-text">"নূতন রাস্তা হওয়ার পর অ্যাম্বুলেন্স আসতে পারছে। বাজারেও যাওয়া সহজ হয়েছে।"</div>
               </div>
               <div class="signal-translated" style="border-bottom-color:rgba(16,185,129,0.08);">
                 <div class="signal-trans-label" style="color:var(--emerald-400);"><span>✅</span> Validated Impact · English</div>
@@ -900,7 +901,56 @@
   </div>
 </div>
 
+  <!-- SETTINGS MODAL -->
+  <div class="copilot-modal-overlay" id="settings-modal" style="position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s;">
+    <div class="copilot-modal" style="width: 500px; background: var(--bg-card); border: 1px solid rgba(99,102,241,0.4); border-radius: var(--r-xl); box-shadow: 0 24px 64px rgba(0,0,0,0.6); overflow: hidden; display: flex; flex-direction: column;">
+      <div class="copilot-modal-header" style="padding: 18px 20px; background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(168,85,247,0.1)); border-bottom: 1px solid rgba(99,102,241,0.2); display: flex; align-items: center; justify-content: space-between;">
+        <div style="font-size: 14px; font-weight: 700; font-family: var(--font-display); color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+          <span>⚙️</span> Platform AI & API Configuration
+        </div>
+        <button class="copilot-modal-close" id="settings-modal-close" style="background: none; border: none; font-size: 18px; color: var(--text-tertiary); cursor: pointer;">✕</button>
+      </div>
+      
+      <div style="padding: 24px; display: flex; flex-direction: column; gap: 20px; color: var(--text-primary); font-family: var(--font-body); font-size: 13px;">
+        <!-- Connection Status Badge -->
+        <div>
+          <div style="font-size: 11px; font-family: var(--font-mono); color: var(--text-tertiary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px;">Current AI Engine Status</div>
+          <div id="settings-engine-status" style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 20px; font-family: var(--font-mono); font-size: 11px; font-weight: 600; text-transform: uppercase;">
+            <!-- Will be set dynamically -->
+          </div>
+        </div>
+
+        <!-- API Key Form -->
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label for="settings-api-key" style="font-weight: 500; color: var(--text-secondary);">Gemini Developer API Key</label>
+          <div style="position: relative;">
+            <input type="password" id="settings-api-key" placeholder="Enter your gemini-2.5-flash API Key..." style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--r-md); padding: 10px 40px 10px 12px; color: var(--text-primary); font-family: var(--font-mono); font-size: 12px; outline: none; transition: border 0.2s;" />
+            <button id="toggle-key-visibility" type="button" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 14px;">👁️</button>
+          </div>
+          <div style="font-size: 11px; color: var(--text-tertiary); line-height: 1.4; margin-top: 4px;">
+            Your API key is saved strictly in your local browser storage (<code style="font-family: var(--font-mono);">localStorage</code>) and never transmitted to any external backend server.
+          </div>
+        </div>
+
+        <!-- Get Key Link -->
+        <div style="background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.15); border-radius: var(--r-md); padding: 12px; line-height: 1.5; color: var(--text-secondary);">
+          💡 <strong>Don't have an API key?</strong> You can get a free developer key for <strong>Gemini 2.5 Flash</strong> in seconds from the <a href="https://aistudio.google.com/" target="_blank" style="color: var(--indigo-300); text-decoration: underline; font-weight: 500;">Google AI Studio Console</a>.
+        </div>
+
+        <!-- Actions -->
+        <div style="display: flex; gap: 12px; margin-top: 8px;">
+          <button id="settings-save-btn" style="flex: 1; padding: 10px; background: linear-gradient(135deg, var(--indigo-600), var(--purple-600)); border: none; border-radius: var(--r-md); color: white; font-weight: 600; font-family: var(--font-display); cursor: pointer; transition: transform 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            💾 Save Configuration
+          </button>
+          <button id="settings-clear-btn" style="padding: 10px 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--r-md); color: var(--text-secondary); font-family: var(--font-display); cursor: pointer; transition: background 0.2s;">
+            🗑️ Clear Key
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin=""></script>
-<script src="js/script.js"></script>
+<script type="module" src="js/dashboard.js"></script>
 </body>
 </html>
