@@ -1,0 +1,11 @@
+{
+  "name": "JanVikas AI - Development Intelligence Platform",
+  "description": "An AI-powered public development intelligence platform transforming citizen feedback into actionable administrative development programs and recommendations.",
+  "requestFramePermissions": [
+    "microphone",
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
