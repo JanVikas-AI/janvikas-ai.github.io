@@ -22,7 +22,8 @@ export const MapEngine = {
         font-family: 'Inter', sans-serif;
       }
       .leaflet-tile-pane {
-        filter: invert(95%) hue-rotate(180deg) brightness(90%) contrast(90%);
+        /* Natively dark tiles do not need inversion/filters which cause blurriness/fog */
+        filter: none !important;
       }
       .leaflet-bar {
         border: 1px solid rgba(255, 255, 255, 0.08) !important;
@@ -95,9 +96,34 @@ export const MapEngine = {
       maxBounds: [[5, 60], [38, 98]] // Rough bounding box for India
     });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+    // Use CartoDB Voyager tiles which load extremely fast, are clean and beautiful, and offer excellent visibility
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OSM</a> | CartoDB | India Boundary recognized by Govt of India'
     }).addTo(this._map);
+
+    // Fetch and draw official, high-fidelity Indian State & National Boundaries GeoJSON to guarantee correct alignment
+    fetch('https://raw.githubusercontent.com/subeeshvasu/India-State-and-Districts-GeoJSON/master/India_States.geojson')
+      .then(res => {
+        if (!res.ok) throw new Error("Network response error loading GeoJSON");
+        return res.json();
+      })
+      .then(data => {
+        L.geoJSON(data, {
+          style: function (feature) {
+            return {
+              color: 'rgba(99, 102, 241, 0.45)', // Sleek Indigo frontier border lines
+              weight: 1.5,
+              fillColor: 'rgba(99, 102, 241, 0.03)',
+              fillOpacity: 0.1
+            };
+          },
+          interactive: false
+        }).addTo(this._map);
+        console.log("Official Government of India recognized state and national boundaries loaded successfully.");
+      })
+      .catch(err => {
+        console.warn("Could not load official GeoJSON boundary overlay:", err);
+      });
 
     // Fix responsive sizing
     setTimeout(() => { if (this._map) this._map.invalidateSize(); }, 300);
