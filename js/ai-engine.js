@@ -99,24 +99,63 @@ Only return a valid JSON object. Do not include any markdown backticks (such as 
 
     if (!scenario) {
       // 2. High-Fidelity Client-Side Rule-Based NLP & Gemini Fallback
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate AI processing delay
+      await new Promise(resolve => setTimeout(resolve, 800)); // Simulate AI processing delay (reduced for fast submission pipeline)
       
       const lowerText = text.toLowerCase();
+      const isNative = text.match(/[^\x00-\x7F]/);
       
+      // Translation Helper Function for Local Fallback
+      const translateNative = (txt, category) => {
+        if (!isNative) return txt;
+        const low = txt.toLowerCase();
+        if (category === "Water Infrastructure") {
+          if (low.includes('తాగునీటి') || low.includes('నీరు') || low.includes('నీళ్లు')) {
+            return "There is a severe drinking water problem in our village. Children are unable to attend school because they must walk 8 kilometers daily to fetch clean water.";
+          }
+          if (low.includes('पानी') || low.includes('जल') || low.includes('नल') || low.includes('कुआं') || low.includes('पाइप')) {
+            return "There is a major water crisis in our area. The drinking water pipeline is damaged, and clean water is not supplied regularly.";
+          }
+          return "Our village is experiencing a critical drinking water shortage. The local water storage and supply lines require immediate upgrade.";
+        }
+        if (category === "Healthcare Access") {
+          if (low.includes('अस्पताल') || low.includes('डॉक्टर') || low.includes('इलाज') || low.includes('दवा') || low.includes('एम्बुलेंस')) {
+            return "The Primary Health Centre in our block lacks doctors and basic medicines. Patients have to travel over 40 kilometers for urgent medical treatment.";
+          }
+          return "There is no functional healthcare facility or ambulance service in our region. We urgently need a Primary Health Centre to handle emergency cases.";
+        }
+        if (category === "Road Connectivity") {
+          if (low.includes('सड़क') || low.includes('रास्ता') || low.includes('कीचड़') || low.includes('गड्ढे') || low.includes('मार्ग')) {
+            return "The main village connectivity road is completely broken and filled with potholes. During the monsoon, it turns into a muddy swamp, making travel impossible.";
+          }
+          return "Our local connecting road is unpaved and extremely dangerous for vehicles. We request a permanent metalled road under the PMGSY scheme.";
+        }
+        if (category === "Energy Access") {
+          if (low.includes('बिजली') || low.includes('अंधेरा') || low.includes('लाइट') || low.includes('पावर') || low.includes('करंट')) {
+            return "Our village faces frequent power cuts lasting up to 16 hours a day. We need solar micro-grids and solar street lights for public safety at night.";
+          }
+          return "Reliable electricity supply is unavailable in our locality. We need solar power systems for households and schools to ensure uninterrupted energy access.";
+        }
+        // General Civic
+        if (low.includes('कचरा') || low.includes('गंदगी') || low.includes('सफाई') || low.includes('शौचालय')) {
+          return "The public sanitation in our ward is extremely poor. There is no proper garbage disposal system, and we need community waste bins and public toilets.";
+        }
+        return "The public utilities in our block require urgent renovation and waste disposal management facilities.";
+      };
+
       // Default Fallback Scenario (Civic/Infrastructure Maintenance)
       scenario = {
-        lang: "English (ISO: en_US)",
-        theme: "Infrastructure Maintenance",
+        lang: isNative ? (lowerText.match(/[\u0900-\u097F]/) ? "Hindi (ISO: hi_IN)" : "Regional (Native)") : "English (ISO: en_US)",
+        theme: "Civic Facilities",
         themeClass: "accent-water",
         transcript: text || "Local civic maintenance required for public utilities.",
-        translation: text || "Local civic maintenance required for public utilities.",
-        scheme: "SBA (Swachh Bharat Abhiyan)",
+        translation: isNative ? translateNative(text, "Civic Facilities") : (text || "Local civic maintenance required for public utilities."),
+        scheme: "Swachh Bharat Abhiyan (SBA)",
         urgency: "🟡 Moderate (Score: 6.8/10)",
         urgencyValue: 6.8,
         urgencyClass: "accent-water",
         clusterId: "Civic-Cluster-12",
         contribution: "MODERATE (+0.6 to maintenance deficit)",
-        summary: "Your submission has been captured. It categorized under general Infrastructure Maintenance and matches local development grids. It has been registered as an active feedback node and scheduled for regional planning review.",
+        summary: "Your submission has been captured. It categorized under general Civic Facilities and matches local development grids. It has been registered as an active feedback node and scheduled for regional planning review.",
         confidence: "85% (Rule-Based Fallback)",
         proposals: [
           { id: 101, name: "Panchayat Community Hall Renovation", match: "82% AI Match", location: `📍 ${report.city || 'Selected Location'}`, theme: "Civic Facilities", supports: 120 },
@@ -125,15 +164,14 @@ Only return a valid JSON object. Do not include any markdown backticks (such as 
       };
 
       // Water Pipeline / Drought Scenario
-      if (lowerText.includes('water') || lowerText.includes('drinking') || lowerText.includes('pipeline') || lowerText.includes('well') || lowerText.includes('తాగునీటి') || lowerText.includes('पानी')) {
+      if (lowerText.includes('water') || lowerText.includes('drinking') || lowerText.includes('pipeline') || lowerText.includes('well') || lowerText.includes('తాగునీటి') || lowerText.includes('पानी') || lowerText.includes('जल') || lowerText.includes('कुआं') || lowerText.includes('नल')) {
+        const theme = "Water Infrastructure";
         scenario = {
           lang: lowerText.includes('తాగునీటి') ? "Telugu (ISO: te_IN)" : (lowerText.match(/[\u0900-\u097F]/) ? "Hindi (ISO: hi_IN)" : "English (ISO: en_US)"),
-          theme: "Water Infrastructure",
+          theme: theme,
           themeClass: "accent-water",
           transcript: text,
-          translation: lowerText.includes('తాగునీటి') 
-            ? "There is a severe drinking water problem in our village. Children are unable to attend school because they must walk 8 kilometers daily to fetch clean water." 
-            : text,
+          translation: isNative ? translateNative(text, theme) : text,
           scheme: "Jal Jeevan Mission (JJM)",
           urgency: "🔴 Critical (Score: 9.4/10)",
           urgencyValue: 9.4,
@@ -149,15 +187,14 @@ Only return a valid JSON object. Do not include any markdown backticks (such as 
         };
       } 
       // Healthcare / Clinic / Hospital Scenario
-      else if (lowerText.includes('health') || lowerText.includes('clinic') || lowerText.includes('phc') || lowerText.includes('hospital') || lowerText.includes('doctor') || lowerText.includes('एम्बुलेंस') || lowerText.includes('अस्पताल')) {
+      else if (lowerText.includes('health') || lowerText.includes('clinic') || lowerText.includes('phc') || lowerText.includes('hospital') || lowerText.includes('doctor') || lowerText.includes('एम्बुलेंस') || lowerText.includes('अस्पताल') || lowerText.includes('इलाज') || lowerText.includes('दवा') || lowerText.includes('वैद्य')) {
+        const theme = "Healthcare Access";
         scenario = {
           lang: lowerText.match(/[\u0900-\u097F]/) ? "Hindi (ISO: hi_IN)" : "English (ISO: en_US)",
-          theme: "Healthcare Access",
+          theme: theme,
           themeClass: "accent-health",
           transcript: text,
-          translation: lowerText.includes('एम्बुलेंस') || lowerText.includes('अस्पताल') 
-            ? "There is no Primary Health Centre (PHC) in our block. The nearest hospital is 45 kilometers away, and even emergency ambulances cannot reach here." 
-            : text,
+          translation: isNative ? translateNative(text, theme) : text,
           scheme: "National Health Mission (NHM)",
           urgency: "🔴 Critical (Score: 8.9/10)",
           urgencyValue: 8.9,
@@ -173,13 +210,14 @@ Only return a valid JSON object. Do not include any markdown backticks (such as 
         };
       }
       // Road / Transportation / Connectivity Scenario
-      else if (lowerText.includes('road') || lowerText.includes('pmgsy') || lowerText.includes('bridge') || lowerText.includes('highway') || lowerText.includes('connectivity') || lowerText.includes('रास्ता') || lowerText.includes('सड़क')) {
+      else if (lowerText.includes('road') || lowerText.includes('pmgsy') || lowerText.includes('bridge') || lowerText.includes('highway') || lowerText.includes('connectivity') || lowerText.includes('रास्ता') || lowerText.includes('सड़क') || lowerText.includes('मार्ग') || lowerText.includes('कीचड़') || lowerText.includes('पुल')) {
+        const theme = "Road Connectivity";
         scenario = {
           lang: lowerText.match(/[\u0900-\u097F]/) ? "Hindi (ISO: hi_IN)" : "English (ISO: en_US)",
-          theme: "Road Connectivity",
+          theme: theme,
           themeClass: "accent-water",
           transcript: text,
-          translation: text,
+          translation: isNative ? translateNative(text, theme) : text,
           scheme: "Pradhan Mantri Gram Sadak Yojana (PMGSY)",
           urgency: "🟠 High (Score: 8.6/10)",
           urgencyValue: 8.6,
@@ -195,13 +233,14 @@ Only return a valid JSON object. Do not include any markdown backticks (such as 
         };
       }
       // Solar / Electricity / Power Scenario
-      else if (lowerText.includes('solar') || lowerText.includes('electricity') || lowerText.includes('power') || lowerText.includes('grid') || lowerText.includes('light') || lowerText.includes('बिजली')) {
+      else if (lowerText.includes('solar') || lowerText.includes('electricity') || lowerText.includes('power') || lowerText.includes('grid') || lowerText.includes('light') || lowerText.includes('बिजली') || lowerText.includes('अंधेरा') || lowerText.includes('ऊर्जा')) {
+        const theme = "Energy Access";
         scenario = {
           lang: lowerText.match(/[\u0900-\u097F]/) ? "Hindi (ISO: hi_IN)" : "English (ISO: en_US)",
-          theme: "Energy Access",
+          theme: theme,
           themeClass: "accent-water",
           transcript: text,
-          translation: text,
+          translation: isNative ? translateNative(text, theme) : text,
           scheme: "PM-KUSUM / Deen Dayal Upadhyaya Gram Jyoti Yojana",
           urgency: "🟠 High (Score: 8.2/10)",
           urgencyValue: 8.2,
