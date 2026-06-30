@@ -347,6 +347,90 @@ Only return a valid JSON object. Do not include any markdown backticks or explan
   },
 
   /**
+   * Run computer vision on uploaded evidence image using Gemini.
+   * If offline or proxy fails, returns null so caller uses offline heuristic.
+   * @param {string} dataUrl Base64-encoded image
+   * @returns {Promise<Object|null>}
+   */
+  async analyzeImage(dataUrl) {
+    const apiKey = localStorage.getItem('gemini_api_key');
+    if (apiKey && navigator.onLine) {
+      try {
+        const commaIdx = dataUrl.indexOf(',');
+        if (commaIdx === -1) throw new Error("Invalid base64 Data URL");
+        const mimeTypePart = dataUrl.slice(0, commaIdx);
+        const base64Data = dataUrl.slice(commaIdx + 1);
+        
+        let mimeType = "image/jpeg";
+        const mimeMatch = mimeTypePart.match(/data:([^;]+);/);
+        if (mimeMatch) {
+          mimeType = mimeMatch[1];
+        }
+
+        const promptText = `
+You are the JanVikas AI Computer Vision engine. Your task is to analyze this uploaded civic evidence photo.
+Identify the primary issue depicted in the image. Be specific. It should be one of these categories or a similar direct issue label:
+- "Road Damage"
+- "Standing Water / Flooding"
+- "Bridge Crack / Structural Damage"
+- "Pipeline Leak / Water Waste"
+- "Trash Accumulation / Waste Dump"
+- "Sewage Overflow"
+- "Unpaved Dirt Road"
+- "General Civic Need"
+
+If the image does not show any civic issue, infrastructure problems, or community development needs (for example, it's just a blank image, a random selfie, a cute animal, or totally unrelated objects), you MUST return:
+"Unverified / No civic issue detected"
+
+Return a valid JSON object matching this exact schema:
+{
+  "label": "The detected category label from the list above, or a custom 2-3 word issue name, OR 'Unverified / No civic issue detected'",
+  "description": "A very brief 1-sentence description of the evidence found in the image (e.g. 'Pothole on a paved road with visible debris').",
+  "verified": true // boolean, false if it's 'Unverified / No civic issue detected'
+}
+
+Only return a valid JSON object. Do not include markdown backticks or explanation.
+`;
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { inlineData: { mimeType: mimeType, data: base64Data } },
+                { text: promptText }
+              ]
+            }],
+            generationConfig: {
+              responseMimeType: "application/json"
+            }
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          let rawText = data.candidates[0].content.parts[0].text;
+          if (rawText.includes('```')) {
+            rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+          }
+          const result = JSON.parse(rawText);
+          console.log("🚀 Image verified by Gemini:", result);
+          if (result.label.toLowerCase().includes("unverified") || result.verified === false) {
+            result.verified = false;
+          } else {
+            result.verified = true;
+          }
+          return result;
+        }
+      } catch (err) {
+        console.warn("Direct Gemini image analysis failed, falling back to local simulation:", err);
+      }
+    }
+    return null;
+  },
+
+  /**
    * Conversational query handler with Governance Copilot
    * @param {string} prompt 
    * @param {Array} history
