@@ -1516,48 +1516,69 @@
 
       </div>
 
-      <!-- CITIZEN SUCCESS CARD (Displays beautiful localized message upon completion) -->
-      <div class="success-card" id="citizen-success-card" style="display: none;">
-        <div class="success-icon-wrapper">
-          <div class="success-glow-ring"></div>
-          <div class="success-icon-emblem">✓</div>
+      <!-- CITIZEN SUCCESS CARD (Displays beautiful premium ticket-style completion screen upon completion) -->
+      <div class="success-card glow-border" id="citizen-success-card" style="display: none; flex-direction: column; background: #0b111e; border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--r-xl); padding: 32px; box-shadow: 0 12px 40px rgba(0,0,0,0.5); animation: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; position: relative; overflow: hidden; margin-top: 16px;">
+        
+        <!-- Premium Ticket Header -->
+        <div style="text-align: center; margin-bottom: 24px;">
+          <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 28px; color: #10b981; animation: success-pulse 2s infinite;">✓</div>
+          <h2 style="font-family: var(--font-display); font-size: 20px; font-weight: 700; color: #ffffff; margin-bottom: 6px; tracking: -0.01em;">✅ Proposal Successfully Submitted</h2>
+          <div style="font-family: var(--font-mono); font-size: 10px; color: #10b981; text-transform: uppercase; letter-spacing: 0.1em; background: rgba(16,185,129,0.06); display: inline-block; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(16,185,129,0.15);">Telemetry Secure · 100% Integrity</div>
         </div>
-        
-        <h2 class="success-title">Submission Successfully Synced</h2>
-        <div class="success-badge">TELEMETRY SECURE · 100% DATA INTEGRITY</div>
-        
-        <!-- Localized inspiring message will be injected dynamically here -->
-        <p class="success-message" id="success-localized-message">
+
+        <!-- Ticket Dashed Divider -->
+        <div style="border-top: 2px dashed rgba(255, 255, 255, 0.08); margin: 8px 0 24px; position: relative;">
+          <div style="position: absolute; left: -40px; top: -8px; width: 16px; height: 16px; border-radius: 50%; background: #070b14;"></div>
+          <div style="position: absolute; right: -40px; top: -8px; width: 16px; height: 16px; border-radius: 50%; background: #070b14;"></div>
+        </div>
+
+        <!-- Ticket Info Fields -->
+        <div style="display: flex; flex-direction: column; gap: 20px; background: rgba(255,255,255,0.02); padding: 20px; border-radius: var(--r-md); border: 1px solid rgba(255,255,255,0.04); margin-bottom: 24px;">
+          
+          <div>
+            <div style="font-family: var(--font-sans); font-size: 11px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Priority Cluster</div>
+            <div id="success-metric-theme" style="font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--indigo-300);">Water Infrastructure</div>
+          </div>
+
+          <div>
+            <div style="font-family: var(--font-sans); font-size: 11px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">AI Confidence</div>
+            <div id="success-metric-confidence" style="font-family: var(--font-mono); font-size: 15px; font-weight: 700; color: #10b981;">94%</div>
+          </div>
+
+          <div>
+            <div style="font-family: var(--font-sans); font-size: 11px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Submitted To</div>
+            <div style="font-family: var(--font-sans); font-size: 14px; font-weight: 600; color: #f1f5f9;">Development Intelligence Engine</div>
+          </div>
+
+          <div>
+            <div style="font-family: var(--font-sans); font-size: 11px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Broadcast Status</div>
+            <div id="success-metric-broadcast" style="font-family: var(--font-sans); font-size: 13.5px; font-weight: 600; color: #10b981; display: flex; align-items: center; gap: 6px;">
+              <span>✓</span> <span id="success-broadcast-status-text">MP Dashboard Synced</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Localized Message -->
+        <p class="success-message" id="success-localized-message" style="font-size: 12.5px; color: var(--text-secondary); text-align: center; line-height: 1.6; margin-bottom: 24px; font-style: italic; padding: 12px; border-left: 3px solid var(--indigo-500); background: rgba(99,102,241,0.03); border-radius: 0 var(--r-sm) var(--r-sm) 0;">
           Every suggestion counts! Your voice has been registered to help build a stronger, better-connected community.
         </p>
 
-        <!-- Dynamic summary brief -->
-        <div class="success-summary-card">
-          <div style="font-size: 11px; font-family: var(--font-mono); color: var(--text-tertiary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">AI Intake Metrics</div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-            <div class="metric-item">
-              <span class="metric-label">Identified Theme</span>
-              <span class="metric-value text-indigo" id="success-metric-theme">Water Infrastructure</span>
-            </div>
-            <div class="metric-item">
-              <span class="metric-label">Urgency Tier</span>
-              <span class="metric-value text-amber" id="success-metric-urgency">🔴 Critical</span>
-            </div>
+        <!-- Actions -->
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <button type="button" class="btn btn-primary" onclick="JanVikasCitizen.resetForm()" style="height: 42px; font-weight: 600; justify-content: center; gap: 6px; border-radius: var(--r-md); font-size: 12.5px; width: 100%;">
+              🔄 Submit Another
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="JanVikasCitizen.shareProposal()" style="height: 42px; font-weight: 600; justify-content: center; gap: 6px; border: 1px solid rgba(16, 185, 129, 0.25); background: rgba(16,185,129,0.05); color: #10b981; border-radius: var(--r-md); font-size: 12.5px; width: 100%;">
+              🔗 Share Proposal
+            </button>
           </div>
-        </div>
-
-        <div style="font-size: 11.5px; color: var(--text-secondary); line-height: 1.5; text-align: center; margin-bottom: 24px; padding: 0 10px;">
-          Your feedback has been merged into regional clusters and updated in the civic decision dashboard for community planning and prioritization.
-        </div>
-
-        <div class="success-actions">
-          <button type="button" class="btn btn-primary" onclick="JanVikasCitizen.resetForm()" style="width: 100%; height: 42px; font-weight: 600; justify-content: center; gap: 8px; border-radius: var(--r-md);">
-            ✍️ Back to Suggestions Section
-          </button>
-          <button type="button" class="btn btn-secondary" onclick="JanVikasCitizen.scrollToResults()" style="width: 100%; height: 42px; font-weight: 500; justify-content: center; gap: 6px; border: 1px solid var(--border-accent); background: rgba(99,102,241,0.06); border-radius: var(--r-md);">
+          <button type="button" class="btn btn-secondary" onclick="JanVikasCitizen.scrollToResults()" style="width: 100%; height: 42px; font-weight: 500; justify-content: center; gap: 6px; border: 1px solid var(--border-accent); background: rgba(99,102,241,0.06); border-radius: var(--r-md); font-size: 12.5px;">
             ✨ View In-Depth AI Analysis Report
           </button>
         </div>
+
       </div>
 
     </section>
