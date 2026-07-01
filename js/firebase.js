@@ -9,6 +9,7 @@ import { Utils } from './utils.js';
 
 let app = null;
 let db = null;
+let storage = null;
 let config = null;
 let isFirebaseActive = false;
 
@@ -103,6 +104,13 @@ async function initializeFirebase() {
     }
     db = initializeFirestore(app, firestoreConfig);
 
+    try {
+      const { getStorage } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js');
+      storage = getStorage(app);
+    } catch (storageErr) {
+      console.warn('⚠️ Firebase Storage module loading failed:', storageErr.message);
+    }
+
     isFirebaseActive = true;
     console.log('🔥 Firebase Persistence Engine successfully mounted with multi-tab offline cache.');
   } catch (err) {
@@ -137,6 +145,52 @@ export const StorageEngine = {
 
   isOnline() {
     return isFirebaseActive && navigator.onLine;
+  },
+
+  /**
+   * Uploads a base64 image string to Firebase Storage and returns the download URL
+   * @param {string} dataUrl Base64 data URL
+   * @returns {Promise<string>} Download URL of the uploaded image
+   */
+  async uploadImage(dataUrl) {
+    await this.ensureReady();
+    if (!isFirebaseActive) {
+      // Offline fallback: return the original dataUrl
+      return dataUrl;
+    }
+
+    try {
+      const { ref, uploadString, getDownloadURL } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js');
+      
+      // Extract base64 content
+      const commaIdx = dataUrl.indexOf(',');
+      if (commaIdx === -1) {
+        throw new Error('Invalid base64 data URL');
+      }
+      const base64Str = dataUrl.slice(commaIdx + 1);
+      
+      // Extract content type/format
+      let format = 'jpeg';
+      const mimeMatch = dataUrl.match(/data:image\/([^;]+);/);
+      if (mimeMatch) {
+        format = mimeMatch[1];
+      }
+
+      const fileName = `signals/${Utils.generateUUID()}.${format}`;
+      const storageRef = ref(storage, fileName);
+      
+      // Upload using 'base64'
+      await uploadString(storageRef, base64Str, 'base64', {
+        contentType: `image/${format}`
+      });
+      
+      const downloadUrl = await getDownloadURL(storageRef);
+      console.log(`Successfully uploaded image to Firebase Storage: ${downloadUrl}`);
+      return downloadUrl;
+    } catch (err) {
+      console.warn('Firebase Storage upload failed, falling back to local base64:', err.message);
+      return dataUrl;
+    }
   },
 
   /**
