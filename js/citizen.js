@@ -1950,7 +1950,11 @@ const JanVikasCitizen = {
 // Expose globally so that inline events find it perfectly
 window.JanVikasCitizen = JanVikasCitizen;
 
-// Start portal on page load
-document.addEventListener('DOMContentLoaded', () => {
+// Start portal on page load or immediately if already loaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    JanVikasCitizen.init();
+  });
+} else {
   JanVikasCitizen.init();
-});
+}
