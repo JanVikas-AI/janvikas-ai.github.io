@@ -82,7 +82,23 @@ async function initializeFirebase() {
 }
 
 // Kick off Firebase loading in background
-const initPromise = initializeFirebase();
+const initPromise = initializeFirebase().then(() => {
+  // Try syncing pending records if online
+  if (isFirebaseActive && navigator.onLine) {
+    StorageEngine.syncPendingRecords().catch(err => {
+      console.warn('Initial syncPendingRecords failed:', err);
+    });
+  }
+});
+
+// Sync pending records on online event
+window.addEventListener('online', () => {
+  if (isFirebaseActive) {
+    StorageEngine.syncPendingRecords().catch(err => {
+      console.warn('Online syncPendingRecords failed:', err);
+    });
+  }
+});
 
 export const StorageEngine = {
   async ensureReady() {
@@ -90,7 +106,42 @@ export const StorageEngine = {
   },
 
   isOnline() {
-    return isFirebaseActive;
+    return isFirebaseActive && navigator.onLine;
+  },
+
+  /**
+   * Sync pending records from LocalStorage to Firestore once online
+   */
+  async syncPendingRecords() {
+    await this.ensureReady();
+    if (!isFirebaseActive || !navigator.onLine) return;
+
+    try {
+      const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+      const collectionsToSync = ['citizenSignals'];
+      
+      for (const col of collectionsToSync) {
+        const localItems = localDB.get(col);
+        const pendingItems = localItems.filter(item => item.pendingSync);
+        
+        if (pendingItems.length === 0) continue;
+        console.log(`Found ${pendingItems.length} pending records to synchronize for ${col}`);
+        
+        for (const item of pendingItems) {
+          const docRef = doc(db, col, item.id);
+          // Create an upload payload without pendingSync
+          const uploadItem = { ...item };
+          delete uploadItem.pendingSync;
+          
+          await setDoc(docRef, uploadItem);
+          // Mark as synchronized locally
+          localDB.update(col, item.id, { pendingSync: false });
+          console.log(`Successfully synchronized pending record ${item.id} to cloud`);
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to synchronize pending records:", err.message);
+    }
   },
 
   /**
@@ -104,31 +155,58 @@ export const StorageEngine = {
       timestamp: documentData.timestamp || Date.now()
     };
 
-    // Always log in local storage for instant offline resilience
-    localDB.insert(collectionName, payload);
-
-    // Broadcast synchronization message for multi-tab synchronization
-    if (window.BroadcastChannel) {
-      try {
-        const bc = new BroadcastChannel('janvikas_channel');
-        bc.postMessage({ type: 'update', collectionName, id: payload.id });
-        bc.close();
-      } catch (bcErr) {
-        console.warn('BroadcastChannel sync failed:', bcErr);
+    const broadcastUpdate = () => {
+      if (window.BroadcastChannel) {
+        try {
+          const bc = new BroadcastChannel('janvikas_channel');
+          bc.postMessage({ type: 'update', collectionName, id: payload.id });
+          bc.close();
+        } catch (bcErr) {
+          console.warn('BroadcastChannel sync failed:', bcErr);
+        }
       }
-    }
+    };
 
-    if (isFirebaseActive) {
+    if (isFirebaseActive && navigator.onLine) {
       try {
         const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
         const docRef = doc(db, collectionName, payload.id);
+        
+        // Wait for successful Firestore write
         await setDoc(docRef, payload);
         console.log(`Synced to cloud collection: ${collectionName}`);
+        
+        // Save to local storage for local cache & synchronization across other tabs
+        localDB.insert(collectionName, payload);
+        broadcastUpdate();
+        
+        return { success: true, payload, synced: true };
       } catch (e) {
-        console.warn(`Cloud save failed for ${collectionName}. Enqueued in offline queue:`, e.message);
+        console.warn(`Firestore write failed for ${collectionName}:`, e.message);
+        // Check if it's a network/offline error that we should treat as offline
+        const isOffline = !navigator.onLine || e.name === 'FirebaseError' && (
+          e.code === 'unavailable' || 
+          e.message?.toLowerCase().includes('network') || 
+          e.message?.toLowerCase().includes('offline') || 
+          e.message?.toLowerCase().includes('could not reach')
+        );
+        if (isOffline) {
+          const localPayload = { ...payload, pendingSync: true };
+          localDB.insert(collectionName, localPayload);
+          broadcastUpdate();
+          return { success: true, payload: localPayload, synced: false, offline: true };
+        } else {
+          // genuine error (permission denied, validation, etc.), let it propagate
+          throw e;
+        }
       }
+    } else {
+      // Firebase inactive or client offline
+      const localPayload = { ...payload, pendingSync: true };
+      localDB.insert(collectionName, localPayload);
+      broadcastUpdate();
+      return { success: true, payload: localPayload, synced: false, offline: true };
     }
-    return payload;
   },
 
   /**
