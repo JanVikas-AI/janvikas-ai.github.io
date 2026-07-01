@@ -58,21 +58,23 @@ async function initializeFirebase() {
 
     // Import Firebase modules
     const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
-    const { initializeFirestore, getFirestore } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+    const { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
 
     app = initializeApp(config);
 
-    // If config defines a custom databaseId, we must initialize firestore with it
+    // Initialize Firestore with persistent multi-tab local cache for robust multi-device offline persistence
+    const firestoreConfig = {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager()
+      })
+    };
     if (config.firestoreDatabaseId) {
-      db = initializeFirestore(app, {
-        databaseId: config.firestoreDatabaseId
-      });
-    } else {
-      db = getFirestore(app);
+      firestoreConfig.databaseId = config.firestoreDatabaseId;
     }
+    db = initializeFirestore(app, firestoreConfig);
 
     isFirebaseActive = true;
-    console.log('🔥 Firebase Persistence Engine successfully mounted.');
+    console.log('🔥 Firebase Persistence Engine successfully mounted with multi-tab offline cache.');
   } catch (err) {
     console.warn('⚠️ Firebase initial connection failed, defaulting to High-Fidelity LocalStorage Engine:', err.message);
     isFirebaseActive = false;
@@ -88,7 +90,7 @@ export const StorageEngine = {
   },
 
   isOnline() {
-    return isFirebaseActive && navigator.onLine;
+    return isFirebaseActive;
   },
 
   /**
@@ -116,7 +118,7 @@ export const StorageEngine = {
       }
     }
 
-    if (this.isOnline()) {
+    if (isFirebaseActive) {
       try {
         const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
         const docRef = doc(db, collectionName, payload.id);
@@ -138,7 +140,7 @@ export const StorageEngine = {
     // Always load local cache first (for offline-first UI performance)
     const localItems = localDB.get(collectionName);
 
-    if (this.isOnline()) {
+    if (isFirebaseActive) {
       try {
         const { collection, getDocs, query, orderBy } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
         const q = query(collection(db, collectionName), orderBy('timestamp', 'desc'));
@@ -179,12 +181,19 @@ export const StorageEngine = {
       }
     }
 
-    if (this.isOnline()) {
+    if (isFirebaseActive) {
       try {
-        const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+        const { doc, getDoc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
         const docRef = doc(db, collectionName, id);
-        await updateDoc(docRef, updates);
-        console.log(`Document ${id} updated in cloud`);
+        
+        // Read existing first to merge conflicts securely, then update
+        const docSnap = await getDoc(docRef);
+        let finalData = { ...updates };
+        if (docSnap.exists()) {
+          finalData = { ...docSnap.data(), ...updates };
+        }
+        await setDoc(docRef, finalData, { merge: true });
+        console.log(`Document ${id} updated in cloud with automatic merge conflict resolution`);
       } catch (e) {
         console.warn(`Failed to update ${id} in cloud, local cache updated.`, e.message);
       }
@@ -234,7 +243,7 @@ export const StorageEngine = {
 
     let cloudUnsubscribe = () => {};
 
-    if (this.isOnline()) {
+    if (isFirebaseActive) {
       try {
         const { collection, onSnapshot, query, orderBy } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
         const q = query(collection(db, collectionName), orderBy('timestamp', 'desc'));
