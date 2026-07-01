@@ -493,6 +493,16 @@
   color: var(--emerald-400);
 }
 
+.timeline-step.failed .step-marker {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  color: #f87171;
+}
+
+.timeline-step.failed .step-name {
+  color: #f87171;
+}
+
 /* AI results container */
 .ai-results-panel {
   background: linear-gradient(180deg, rgba(99, 102, 241, 0.08) 0%, var(--bg-card) 100%);
