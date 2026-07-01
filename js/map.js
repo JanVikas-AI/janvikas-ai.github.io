@@ -98,13 +98,13 @@ export const MapEngine = {
 
     // Use CartoDB Voyager tiles which load extremely fast, are clean and beautiful, and offer excellent visibility
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OSM</a> | CartoDB | India Boundary recognized by Govt of India'
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | CartoDB | India Regional Boundaries'
     }).addTo(this._map);
 
-    // Fetch and draw official, high-fidelity Indian State & National Boundaries GeoJSON to guarantee correct alignment
-    fetch('https://raw.githubusercontent.com/subeeshvasu/India-State-and-Districts-GeoJSON/master/India_States.geojson')
+    // Fetch and draw local, high-fidelity Indian State & National Boundaries GeoJSON to guarantee correct alignment
+    fetch('assets/maps/india_states.geojson')
       .then(res => {
-        if (!res.ok) throw new Error("Network response error loading GeoJSON");
+        if (!res.ok) throw new Error("Local response error loading GeoJSON");
         return res.json();
       })
       .then(data => {
@@ -119,7 +119,7 @@ export const MapEngine = {
           },
           interactive: false
         }).addTo(this._map);
-        console.log("Official Government of India recognized state and national boundaries loaded successfully.");
+        console.log("India state and regional boundaries loaded successfully from local repository.");
       })
       .catch(err => {
         console.warn("Could not load official GeoJSON boundary overlay:", err);
