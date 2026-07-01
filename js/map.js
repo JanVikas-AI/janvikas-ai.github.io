@@ -101,30 +101,6 @@ export const MapEngine = {
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | CartoDB | India Regional Boundaries'
     }).addTo(this._map);
 
-    // Fetch and draw local, high-fidelity Indian State & National Boundaries GeoJSON to guarantee correct alignment
-    fetch('assets/maps/india_states.geojson')
-      .then(res => {
-        if (!res.ok) throw new Error("Local response error loading GeoJSON");
-        return res.json();
-      })
-      .then(data => {
-        L.geoJSON(data, {
-          style: function (feature) {
-            return {
-              color: 'rgba(99, 102, 241, 0.45)', // Sleek Indigo frontier border lines
-              weight: 1.5,
-              fillColor: 'rgba(99, 102, 241, 0.03)',
-              fillOpacity: 0.1
-            };
-          },
-          interactive: false
-        }).addTo(this._map);
-        console.log("India state and regional boundaries loaded successfully from local repository.");
-      })
-      .catch(err => {
-        console.warn("Could not load official GeoJSON boundary overlay:", err);
-      });
-
     // Fix responsive sizing
     setTimeout(() => { if (this._map) this._map.invalidateSize(); }, 300);
     setTimeout(() => { if (this._map) this._map.invalidateSize(); }, 1000);
