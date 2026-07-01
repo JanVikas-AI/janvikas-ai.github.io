@@ -1812,7 +1812,7 @@
         <button class="copilot-modal-close" id="settings-modal-close" style="background: none; border: none; font-size: 18px; color: var(--text-tertiary); cursor: pointer;">✕</button>
       </div>
       
-      <div style="padding: 24px; display: flex; flex-direction: column; gap: 20px; color: var(--text-primary); font-family: var(--font-body); font-size: 13px;">
+      <form onsubmit="event.preventDefault();" style="padding: 24px; display: flex; flex-direction: column; gap: 20px; color: var(--text-primary); font-family: var(--font-body); font-size: 13px;">
         <!-- Connection Status Badge -->
         <div>
           <div style="font-size: 11px; font-family: var(--font-mono); color: var(--text-tertiary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px;">Current AI Engine Status</div>
@@ -1847,7 +1847,7 @@
             🗑️ Clear Key
           </button>
         </div>
-      </div>
+      </form>
     </div>
   </div>
 
