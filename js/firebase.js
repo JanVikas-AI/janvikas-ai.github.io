@@ -52,8 +52,38 @@ const localDB = {
  */
 async function initializeFirebase() {
   try {
-    const response = await fetch('firebase-applet-config.json');
-    if (!response.ok) throw new Error('Firebase configuration file not found');
+    const configPaths = [
+      'firebase-applet-config.json',
+      '/firebase-applet-config.json',
+      'public/firebase-applet-config.json',
+      '/public/firebase-applet-config.json'
+    ];
+    let response = null;
+    let lastError = null;
+
+    for (const p of configPaths) {
+      try {
+        const res = await fetch(p);
+        if (res.ok) {
+          const contentType = res.headers.get("content-type");
+          if (contentType && contentType.includes("text/html")) {
+            throw new Error("HTML fallback response instead of JSON");
+          }
+          response = res;
+          console.log(`Successfully fetched Firebase configuration from: ${p}`);
+          break;
+        } else {
+          throw new Error(`HTTP ${res.status}`);
+        }
+      } catch (e) {
+        lastError = e;
+      }
+    }
+
+    if (!response) {
+      throw new Error(lastError ? `All paths failed. Last error: ${lastError.message}` : 'Firebase configuration file not found');
+    }
+
     config = await response.json();
 
     // Import Firebase modules
