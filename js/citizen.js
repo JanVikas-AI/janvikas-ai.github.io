@@ -1293,6 +1293,22 @@ const JanVikasCitizen = {
         // Step 10: Civic Planning Brief Synced
         updateStep('step-ready', 'active', 'Syncing report with the Community Decision Cockpit...');
         
+        // Upload images to Firebase Storage if any are attached
+        const finalImageUrls = [];
+        if (reportPayload.images && reportPayload.images.length > 0) {
+          updateStep('step-ready', 'active', 'Uploading evidence images to cloud storage...');
+          for (const imgDataUrl of reportPayload.images) {
+            try {
+              const url = await StorageEngine.uploadImage(imgDataUrl);
+              finalImageUrls.push(url);
+            } catch (uploadErr) {
+              console.warn("Failed uploading image to storage, using fallback:", uploadErr);
+              finalImageUrls.push(imgDataUrl);
+            }
+          }
+          updateStep('step-ready', 'active', 'Syncing report with the Community Decision Cockpit...');
+        }
+
         // Prepare storage payload
         const storedReport = {
           uid: Utils.generateUUID(),
@@ -1312,7 +1328,7 @@ const JanVikasCitizen = {
           priorityContribution: scenario.contribution,
           aiSummary: scenario.summary,
           confidence: scenario.confidence,
-          images: reportPayload.images,
+          images: finalImageUrls,
           supports: 1,
           timestamp: Date.now()
         };
