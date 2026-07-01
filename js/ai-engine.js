@@ -88,6 +88,7 @@ Only return a valid JSON object. Do not include any markdown backticks (such as 
             rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
           }
           scenario = JSON.parse(rawText);
+          scenario.isRealGemini = true;
           console.log("🚀 Direct Gemini 2.5 Flash response successfully parsed:", scenario);
         } else {
           console.warn(`Gemini API returned status ${response.status}. Defaulting to rule-based client-side engine.`);
@@ -156,9 +157,10 @@ Only return a valid JSON object. Do not include any markdown backticks (such as 
         clusterId: "Civic-Cluster-12",
         contribution: "MODERATE (+0.6 to maintenance deficit)",
         summary: "Your submission has been captured. It categorized under general Civic Facilities and matches local development grids. It has been registered as an active feedback node and scheduled for regional planning review.",
-        confidence: "85% (Rule-Based Fallback)",
+        confidence: "Rule-Based Analysis",
+        isRealGemini: false,
         proposals: [
-          { id: 101, name: "Panchayat Community Hall Renovation", match: "82% AI Match", location: `📍 ${report.city || 'Selected Location'}`, theme: "Civic Facilities", supports: 120 },
+          { id: 101, name: "Panchayat Community Hall Renovation", match: "82% Match", location: `📍 ${report.city || 'Selected Location'}`, theme: "Civic Facilities", supports: 120 },
           { id: 102, name: "Public Waste Bin Placements", match: "45% Similarity", location: `📍 ${report.district || 'Local Block'}`, theme: "Sanitation & Waste", supports: 231 }
         ]
       };
@@ -179,9 +181,10 @@ Only return a valid JSON object. Do not include any markdown backticks (such as 
           clusterId: `Water-Cluster-${Math.floor(Math.random() * 90 + 10)}`,
           contribution: "HIGH (+1.8 to regional deficit)",
           summary: `Your multilingual submission has been successfully translated and categorized under <strong>Water Infrastructure</strong>. The evidence matches existing infrastructure gap profiles in ${report.city || 'Tikamgarh Block'} (−63% coverage below norm). The school-dropout/drought risk triggers a heavy critical priority score multiplier. This report has been consolidated into the active national evidence cockpit.`,
-          confidence: "94% (Rule-Based Fallback)",
+          confidence: "Rule-Based Analysis",
+          isRealGemini: false,
           proposals: [
-            { id: 1, name: "Rural Drinking Water Network Upgrade", match: "94% AI Match", location: `📍 ${report.city || 'Tikamgarh'}, ${report.state || 'UP'}`, theme: "Water Infrastructure", supports: 4821 },
+            { id: 1, name: "Rural Drinking Water Network Upgrade", match: "94% Match", location: `📍 ${report.city || 'Tikamgarh'}, ${report.state || 'UP'}`, theme: "Water Infrastructure", supports: 4821 },
             { id: 2, name: "Panchayat Primary Health Centre Expansion", match: "42% Similarity", location: `📍 ${report.district || 'Bundelkhand'}, ${report.state || 'UP'}`, theme: "Healthcare Access", supports: 842 }
           ]
         };
@@ -202,15 +205,16 @@ Only return a valid JSON object. Do not include any markdown backticks (such as 
           clusterId: `Health-Cluster-${Math.floor(Math.random() * 90 + 10)}`,
           contribution: "HIGH (+1.5 to regional health index)",
           summary: `Your multilingual submission has been processed. It matches the <strong>Healthcare Access</strong> theme. Evidence confirms severe localized medical desert status with the nearest hospital over 45km away. The ambulance connectivity challenge has triggered a high urgency level in ${report.city || 'Gaya Block'}. It has been synced into the active regional health funding proposal.`,
-          confidence: "91% (Rule-Based Fallback)",
+          confidence: "Rule-Based Analysis",
+          isRealGemini: false,
           proposals: [
-            { id: 3, name: "District Hospital Equipment Upgrade", match: "88% AI Match", location: `📍 ${report.city || 'Gaya'}, ${report.state || 'Bihar'}`, theme: "Healthcare Access", supports: 3247 },
+            { id: 3, name: "District Hospital Equipment Upgrade", match: "88% Match", location: `📍 ${report.city || 'Gaya'}, ${report.state || 'Bihar'}`, theme: "Healthcare Access", supports: 3247 },
             { id: 4, name: "Rural Connectivity Link Road Expansion", match: "51% Similarity", location: `📍 ${report.district || 'Magadh Area'}, ${report.state || 'Bihar'}`, theme: "Road Connectivity", supports: 1542 }
           ]
         };
       }
       // Road / Transportation / Connectivity Scenario
-      else if (lowerText.includes('road') || lowerText.includes('pmgsy') || lowerText.includes('bridge') || lowerText.includes('highway') || lowerText.includes('connectivity') || lowerText.includes('रास्ता') || lowerText.includes('सड़क') || lowerText.includes('मार्ग') || lowerText.includes('कीचड़') || lowerText.includes('पुल')) {
+      else if (lowerText.includes('road') || lowerText.includes('pmgsy') || lowerText.includes('bridge') || lowerText.includes('highway') || lowerText.includes('connectivity') || lowerText.includes('रास्ता') || roadMatches(lowerText)) {
         const theme = "Road Connectivity";
         scenario = {
           lang: lowerText.match(/[\u0900-\u097F]/) ? "Hindi (ISO: hi_IN)" : "English (ISO: en_US)",
@@ -225,9 +229,10 @@ Only return a valid JSON object. Do not include any markdown backticks (such as 
           clusterId: `Road-Cluster-${Math.floor(Math.random() * 90 + 10)}`,
           contribution: "HIGH (+1.2 to accessibility score)",
           summary: `Your submission has been cataloged under the <strong>Road Connectivity (PMGSY)</strong> scheme. Access indicators in ${report.city || 'Koraput Block'} confirm that over 89 villages lack all-weather metalled road access, triggering transport priority multipliers. This report is flagged for Lok Sabha MP review in the Q2 budgeting round.`,
-          confidence: "93% (Rule-Based Fallback)",
+          confidence: "Rule-Based Analysis",
+          isRealGemini: false,
           proposals: [
-            { id: 5, name: "Rural Road Connectivity (PMGSY Ph.2)", match: "98% AI Match", location: `📍 ${report.city || 'Koraput'}, ${report.state || 'Odisha'}`, theme: "Road Connectivity", supports: 2819 },
+            { id: 5, name: "Rural Road Connectivity (PMGSY Ph.2)", match: "98% Match", location: `📍 ${report.city || 'Koraput'}, ${report.state || 'Odisha'}`, theme: "Road Connectivity", supports: 2819 },
             { id: 6, name: "Solar Micro-Grid Electrification", match: "31% Similarity", location: `📍 ${report.district || 'Koraput District'}, ${report.state || 'Odisha'}`, theme: "Energy Access", supports: 1547 }
           ]
         };
@@ -248,13 +253,19 @@ Only return a valid JSON object. Do not include any markdown backticks (such as 
           clusterId: `Power-Cluster-${Math.floor(Math.random() * 90 + 10)}`,
           contribution: "HIGH (+1.1 to rural grid expansion)",
           summary: `Your power-grid feedback is analyzed under <strong>Energy Access</strong>. Correlating local coordinates with satellite night-lights confirms a deficit grid status. This submission has been merged into the PM-KUSUM rural solar micro-grid proposal list.`,
-          confidence: "88% (Rule-Based Fallback)",
+          confidence: "Rule-Based Analysis",
+          isRealGemini: false,
           proposals: [
-            { id: 7, name: "Solar Micro-Grid Electrification", match: "96% AI Match", location: `📍 ${report.city || 'Barmer'}, ${report.state || 'Rajasthan'}`, theme: "Energy Access", supports: 1547 },
+            { id: 7, name: "Solar Micro-Grid Electrification", match: "96% Match", location: `📍 ${report.city || 'Barmer'}, ${report.state || 'Rajasthan'}`, theme: "Energy Access", supports: 1547 },
             { id: 8, name: "School Capacity & Midday Meal Infra", match: "24% Similarity", location: `📍 ${report.district || 'Barmer Block'}, ${report.state || 'Rajasthan'}`, theme: "School Capacity", supports: 1203 }
           ]
         };
       }
+    }
+
+    // Helper for road keywords
+    function roadMatches(txt) {
+      return txt.includes('pmgsy') || txt.includes('bridge') || txt.includes('highway') || txt.includes('connectivity') || txt.includes('रास्ता') || txt.includes('सड़क') || txt.includes('मार्ग') || txt.includes('कीचड़') || txt.includes('पुल');
     }
 
     // Post-process similar proposals with actual live database records for duplicate detection
