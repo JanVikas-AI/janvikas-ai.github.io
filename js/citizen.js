@@ -1293,51 +1293,93 @@ const JanVikasCitizen = {
         // Step 10: Civic Planning Brief Synced
         updateStep('step-ready', 'active', 'Syncing report with the Community Decision Cockpit...');
         
-        // Upload images to Firebase Storage if any are attached
-        const finalImageUrls = [];
-        if (reportPayload.images && reportPayload.images.length > 0) {
-          updateStep('step-ready', 'active', 'Uploading evidence images to cloud storage...');
-          for (const imgDataUrl of reportPayload.images) {
-            try {
-              const url = await StorageEngine.uploadImage(imgDataUrl);
-              finalImageUrls.push(url);
-            } catch (uploadErr) {
-              console.warn("Failed uploading image to storage, using fallback:", uploadErr);
-              finalImageUrls.push(imgDataUrl);
-            }
-          }
+        const uid = Utils.generateUUID();
+        const hasImages = this.state.uploadedFiles && this.state.uploadedFiles.length > 0;
+        
+        // Dynamic SDG Alignment mapping based on Theme
+        let sdgAlignment = 'SDG 11 · Sustainable Cities';
+        if (scenario.theme === 'Water Infrastructure') {
+          sdgAlignment = 'SDG 6 · Clean Water & Sanitation';
+        } else if (scenario.theme === 'Healthcare Access') {
+          sdgAlignment = 'SDG 3 · Good Health & Well-being';
+        } else if (scenario.theme === 'Road Connectivity') {
+          sdgAlignment = 'SDG 9 · Industry & Infrastructure';
+        } else if (scenario.theme === 'Energy Access') {
+          sdgAlignment = 'SDG 7 · Clean & Affordable Energy';
+        } else if (scenario.theme === 'School Capacity') {
+          sdgAlignment = 'SDG 4 · Quality Education';
+        } else if (scenario.theme === 'Waste Management') {
+          sdgAlignment = 'SDG 6 · Clean Water & Sanitation';
+        }
+
+        // Session-based Image Architecture: Store base64 data URLs inside local session storage
+        if (hasImages) {
+          updateStep('step-ready', 'active', 'Registering active session evidence images...');
+          const base64Images = this.state.uploadedFiles.map(img => img.dataUrl);
+          localStorage.setItem(`jv_img_data_${uid}`, JSON.stringify(base64Images));
           updateStep('step-ready', 'active', 'Syncing report with the Community Decision Cockpit...');
         }
 
-        // Prepare storage payload
+        // Prepare storage payload with maximum integrity (STRICTLY satisfying ISSUE 5 constraints)
         const storedReport = {
-          uid: Utils.generateUUID(),
-          title: scenario.theme + " - " + reportPayload.city,
-          text: reportPayload.text,
+          // Required Audit Fields
+          submissionId: uid,
+          timestamp: Date.now(),
+          theme: scenario.theme || "General Civic",
+          translation: scenario.translation || reportPayload.text,
+          language: scenario.lang || "English",
+          priorityScore: Number(scenario.urgencyValue || 8.2),
           state: reportPayload.state,
           district: reportPayload.district,
           city: reportPayload.city,
-          ward: reportPayload.ward,
-          theme: scenario.theme,
-          scheme: scenario.scheme,
+          analysis: {
+            theme: scenario.theme || "General Civic",
+            scheme: scenario.scheme || "Swachh Bharat Abhiyan (SBA)",
+            urgency: scenario.urgency || "Moderate",
+            urgencyValue: Number(scenario.urgencyValue || 8.2),
+            urgencyClass: scenario.urgencyClass || "accent-water",
+            clusterId: scenario.clusterId || "General-Cluster-1",
+            contribution: scenario.contribution || "Moderate",
+            summary: scenario.summary || scenario.translation || reportPayload.text,
+            confidence: Number(scenario.confidence || 92)
+          },
+          summary: scenario.summary || scenario.translation || reportPayload.text,
+          schemeRecommendation: scenario.scheme || "General Scheme",
+          sdgAlignment: sdgAlignment,
+          duplicateCluster: scenario.clusterId || "General-Cluster-1",
+          status: "active",
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+
+          // Temporary Session Image Architecture Metadata
+          imageAvailable: hasImages,
+          imageName: hasImages ? this.state.uploadedFiles[0].name : "",
+          mimeType: hasImages ? (this.state.uploadedFiles[0].dataUrl.match(/data:([^;]+);/)?.[1] || "image/jpeg") : "",
+
+          // Backward Compatibility Fields for Legacy Renderers
+          uid: uid,
+          id: uid,
+          title: (scenario.theme || "General Civic") + " - " + reportPayload.city,
+          text: reportPayload.text,
+          ward: reportPayload.ward || "Ward 1",
+          scheme: scenario.scheme || "General Scheme",
           urgency: scenario.theme === 'Water Infrastructure' ? 'critical' : (scenario.theme === 'Healthcare Access' ? 'critical' : 'high'),
-          urgencyScore: scenario.urgencyValue || 8.2,
-          detectedLanguage: scenario.lang,
-          englishTranslation: scenario.translation,
-          evidenceClusterId: scenario.clusterId,
-          priorityContribution: scenario.contribution,
-          aiSummary: scenario.summary,
-          confidence: scenario.confidence,
-          images: finalImageUrls,
+          urgencyScore: Number(scenario.urgencyValue || 8.2),
+          detectedLanguage: scenario.lang || "English",
+          englishTranslation: scenario.translation || reportPayload.text,
+          evidenceClusterId: scenario.clusterId || "General-Cluster-1",
+          priorityContribution: scenario.contribution || "Moderate",
+          aiSummary: scenario.summary || scenario.translation || reportPayload.text,
+          confidence: Number(scenario.confidence || 92),
           supports: 1,
-          timestamp: Date.now()
+          images: [] // Stored empty in Firestore; hydrated locally from session storage on read
         };
 
         let syncResult = null;
         try {
           syncResult = await StorageEngine.insert('citizenSignals', storedReport);
         } catch (dbErr) {
-          throw new Error(`Firestore write failed: ${dbErr.message || dbErr}`);
+          throw new Error(`Firestore write rejected: ${dbErr.message || dbErr}`);
         }
 
         // Update top bar dynamic signals count
@@ -1364,26 +1406,6 @@ const JanVikasCitizen = {
           }
           updateStep('step-ready', 'completed', '✅ Proposal Submitted Successfully');
           await new Promise(resolve => setTimeout(resolve, 800));
-        } else if (syncResult && syncResult.offline) {
-          isDashboardSynced = false;
-          const stepNameEl = document.querySelector('#step-ready .step-name');
-          if (stepNameEl) {
-            stepNameEl.textContent = "Pending Synchronization";
-          }
-          updateStep('step-ready', 'active', 'Saved locally. Waiting to synchronize with Firebase.');
-          
-          // Apply custom amber/yellow warning styles to the step marker for visual clarity
-          const stepReadyEl = document.getElementById('step-ready');
-          if (stepReadyEl) {
-            stepReadyEl.style.borderColor = 'rgba(245, 158, 11, 0.5)';
-            const marker = stepReadyEl.querySelector('.step-marker');
-            if (marker) {
-              marker.style.background = 'rgba(245, 158, 11, 0.15)';
-              marker.style.color = '#f59e0b';
-              marker.style.borderColor = '#f59e0b';
-            }
-          }
-          await new Promise(resolve => setTimeout(resolve, 1200));
         }
 
         // Render fields and show results
@@ -1392,11 +1414,11 @@ const JanVikasCitizen = {
       } catch (err) {
         console.error("Pipeline failure:", err);
         // Mark all active steps as failed
-        document.querySelectorAll('.timeline-step.active, .timeline-step.step-ready').forEach(el => {
+        document.querySelectorAll('.timeline-step.active, #step-ready').forEach(el => {
           el.classList.remove('active', 'completed');
           el.classList.add('failed');
           const desc = el.querySelector('.step-desc');
-          if (desc) desc.textContent = `Failed: ${err.message || 'Unknown processing error'}`;
+          if (desc) desc.textContent = `❌ Submission Failed: ${err.message || 'Unknown processing error'}`;
         });
         this._showToast(`Pipeline execution failed: ${err.message || 'System error'}`);
       }
