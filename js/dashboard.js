@@ -1650,6 +1650,10 @@ const JanVikasAI = {
 // Expose globally so that inline triggers still work
 window.JanVikasAI = JanVikasAI;
 
-document.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    JanVikasAI.init();
+  });
+} else {
   JanVikasAI.init();
-});
+}
