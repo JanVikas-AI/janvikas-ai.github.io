@@ -1317,65 +1317,58 @@ const JanVikasCitizen = {
           timestamp: Date.now()
         };
 
-        const startTime = Date.now();
-        
-        // Create a listener on BroadcastChannel to wait for 'dashboard_acknowledged'
-        const ackPromise = new Promise((resolve, reject) => {
-          let bcListener;
-          let timeoutId;
-          
-          if (window.BroadcastChannel) {
-            const bc = new BroadcastChannel('janvikas_channel');
-            bcListener = (event) => {
-              if (event.data && event.data.type === 'dashboard_acknowledged') {
-                clearTimeout(timeoutId);
-                bc.removeEventListener('message', bcListener);
-                bc.close();
-                resolve();
-              }
-            };
-            bc.addEventListener('message', bcListener);
-          } else {
-            resolve(); // Fallback if BroadcastChannel is missing
-          }
-
-          // Timeout after 1.0 second (faster fallback for smooth UX)
-          timeoutId = setTimeout(() => {
-            if (window.BroadcastChannel && bcListener) {
-              const bc = new BroadcastChannel('janvikas_channel');
-              bc.removeEventListener('message', bcListener);
-              bc.close();
-            }
-            // Double-check localStorage as a secondary fallback channel
-            const lastSync = localStorage.getItem('jv_dashboard_last_sync');
-            if (lastSync && parseInt(lastSync) >= startTime) {
-              resolve();
-            } else {
-              reject(new Error("Telemetry Saved to Local Cache · Will sync when Cockpit online"));
-            }
-          }, 1000);
-        });
-
-        // Insert into storage which also triggers BroadcastChannel message post
-        await StorageEngine.insert('citizenSignals', storedReport);
+        let syncResult = null;
+        try {
+          syncResult = await StorageEngine.insert('citizenSignals', storedReport);
+        } catch (dbErr) {
+          throw new Error(`Firestore write failed: ${dbErr.message || dbErr}`);
+        }
 
         // Update top bar dynamic signals count
         this.updateNationalSignalsBadge();
 
         let isDashboardSynced = false;
 
-        // Wait for dynamic dashboard acknowledgement
-        try {
-          await ackPromise;
+        if (syncResult && syncResult.synced) {
           isDashboardSynced = true;
-          updateStep('step-ready', 'completed', 'Telemetry Sync Connection Established Successfully · 100% data integrity');
-        } catch (syncErr) {
+          const stepNameEl = document.querySelector('#step-ready .step-name');
+          if (stepNameEl) {
+            stepNameEl.textContent = "Civic Planning Brief Synced";
+          }
+          // Reset custom styles if any
+          const stepReadyEl = document.getElementById('step-ready');
+          if (stepReadyEl) {
+            stepReadyEl.style.borderColor = '';
+            const marker = stepReadyEl.querySelector('.step-marker');
+            if (marker) {
+              marker.style.background = '';
+              marker.style.color = '';
+              marker.style.borderColor = '';
+            }
+          }
+          updateStep('step-ready', 'completed', '✅ Proposal Submitted Successfully');
+          await new Promise(resolve => setTimeout(resolve, 800));
+        } else if (syncResult && syncResult.offline) {
           isDashboardSynced = false;
-          updateStep('step-ready', 'completed', syncErr.message);
+          const stepNameEl = document.querySelector('#step-ready .step-name');
+          if (stepNameEl) {
+            stepNameEl.textContent = "Pending Synchronization";
+          }
+          updateStep('step-ready', 'active', 'Saved locally. Waiting to synchronize with Firebase.');
+          
+          // Apply custom amber/yellow warning styles to the step marker for visual clarity
+          const stepReadyEl = document.getElementById('step-ready');
+          if (stepReadyEl) {
+            stepReadyEl.style.borderColor = 'rgba(245, 158, 11, 0.5)';
+            const marker = stepReadyEl.querySelector('.step-marker');
+            if (marker) {
+              marker.style.background = 'rgba(245, 158, 11, 0.15)';
+              marker.style.color = '#f59e0b';
+              marker.style.borderColor = '#f59e0b';
+            }
+          }
+          await new Promise(resolve => setTimeout(resolve, 1200));
         }
-
-        // Allow some time for user to see step 10 is green
-        await new Promise(resolve => setTimeout(resolve, 800));
 
         // Render fields and show results
         this._renderAIResults(scenario, text, isDashboardSynced);
