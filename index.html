@@ -1,244 +1,404 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>JanVikas AI — Public Development Intelligence</title>
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-    <!-- Direct CSS reference to use design tokens -->
-    <link rel="stylesheet" href="css/styles.css" />
-    <style>
-      body {
-        margin: 0;
-        padding: 0;
-        background: radial-gradient(circle at 50% 30%, rgba(99, 102, 241, 0.08) 0%, var(--bg-void) 70%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        overflow-x: hidden;
-      }
-      .gateway-container {
-        max-width: 1000px;
-        width: 100%;
-        padding: 40px 24px;
-        text-align: center;
-      }
-      .gateway-header {
-        margin-bottom: 50px;
-        animation: fadeInDown 0.8s ease-out;
-      }
-      .gateway-badge {
-        font-family: var(--font-mono);
-        font-size: 11px;
-        color: var(--indigo-300);
-        background: rgba(99, 102, 241, 0.1);
-        border: 1px solid rgba(99, 102, 241, 0.25);
-        padding: 4px 12px;
-        border-radius: 20px;
-        display: inline-block;
-        margin-bottom: 16px;
-        text-transform: uppercase;
-        letter-spacing: 1.5px;
-      }
-      .gateway-title {
-        font-family: var(--font-display);
-        font-size: 42px;
-        font-weight: 700;
-        letter-spacing: -1px;
-        color: var(--text-primary);
-        line-height: 1.1;
-        margin-bottom: 12px;
-      }
-      .gateway-subtitle {
-        font-family: var(--font-body);
-        font-size: 15px;
-        color: var(--text-secondary);
-        max-width: 580px;
-        margin: 0 auto;
-        line-height: 1.6;
-      }
-      .portal-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 24px;
-        margin-top: 20px;
-        animation: fadeInUp 0.8s ease-out 0.2s both;
-      }
-      @media (min-width: 768px) {
-        .portal-grid {
-          grid-template-columns: 1fr 1fr;
-        }
-      }
-      .portal-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-glass);
-        border-radius: var(--r-xl);
-        padding: 40px;
-        text-align: left;
-        position: relative;
-        overflow: hidden;
-        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        text-decoration: none;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        min-height: 380px;
-      }
-      .portal-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: transparent;
-        transition: background 0.3s;
-      }
-      .portal-card.citizen::before {
-        background: linear-gradient(90deg, var(--indigo-500), var(--sky-400));
-      }
-      .portal-card.admin::before {
-        background: linear-gradient(90deg, var(--amber-500), var(--crimson-400));
-      }
-      .portal-card:hover {
-        transform: translateY(-6px);
-        border-color: rgba(255, 255, 255, 0.15);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), var(--shadow-glow);
-      }
-      .portal-card.admin:hover {
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 40px rgba(245, 158, 11, 0.08);
-      }
-      .portal-icon {
-        font-size: 36px;
-        margin-bottom: 24px;
-        display: inline-block;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        width: 72px;
-        height: 72px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: var(--r-lg);
-        transition: all 0.3s;
-      }
-      .portal-card:hover .portal-icon {
-        transform: scale(1.1);
-        background: rgba(255, 255, 255, 0.08);
-      }
-      .portal-meta {
-        font-family: var(--font-mono);
-        font-size: 11px;
-        color: var(--text-tertiary);
-        margin-bottom: 8px;
-        letter-spacing: 1.5px;
-        text-transform: uppercase;
-      }
-      .portal-name {
-        font-family: var(--font-display);
-        font-size: 24px;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin-bottom: 12px;
-        letter-spacing: -0.5px;
-      }
-      .portal-desc {
-        font-family: var(--font-body);
-        font-size: 14px;
-        color: var(--text-secondary);
-        line-height: 1.5;
-        margin-bottom: 24px;
-        flex-grow: 1;
-      }
-      .portal-action {
-        display: inline-flex;
-        align-items: center;
-        font-family: var(--font-display);
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--indigo-300);
-        gap: 8px;
-        transition: all 0.2s;
-      }
-      .portal-card.admin .portal-action {
-        color: var(--amber-400);
-      }
-      .portal-card:hover .portal-action {
-        gap: 12px;
-      }
-      .portal-card:hover .portal-action span {
-        transform: translateX(2px);
-      }
-      .footer-credit {
-        margin-top: 60px;
-        font-family: var(--font-mono);
-        font-size: 11px;
-        color: var(--text-tertiary);
-        animation: fadeIn 1s ease-out 0.4s both;
-      }
-      @keyframes fadeInDown {
-        from { opacity: 0; transform: translateY(-20px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="gateway-container">
-      <div class="gateway-header">
-        <div class="gateway-badge">AI-Native Public Infrastructure</div>
-        <h1 class="gateway-title">JanVikas AI</h1>
-        <p class="gateway-subtitle">
-          An intelligent developmental bridge connecting native citizen voices with data-driven legislative prioritization and strategic budgetary allocations.
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>JanVikas AI — Public Development Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  /* ═══════════ TOKENS ═══════════ */
+  :root{
+    --void:#070B14;
+    --surface:#0C1220;
+    --card:#111A2B;
+    --card-hi:#141F33;
+    --line:rgba(201,162,39,0.14);
+    --line-soft:rgba(255,255,255,0.06);
+    --ink:#EEF1F6;
+    --ink-dim:#9AA6B8;
+    --ink-faint:#5C6A82;
+    --gold:#C9A227;
+    --gold-hi:#E0BC4B;
+    --teal:#2C9C82;
+    --crimson:#C1543A;
+    --indigo:#5B6EE1;
+    --font-display:'Fraunces', serif;
+    --font-body:'Inter', sans-serif;
+    --font-mono:'JetBrains Mono', monospace;
+  }
+
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important;animation-iteration-count:1 !important;transition-duration:0.001ms !important;}
+  }
+
+  body{
+    font-family:var(--font-body);
+    background:
+      radial-gradient(1100px 600px at 82% -8%, rgba(91,110,225,0.10), transparent 60%),
+      radial-gradient(900px 500px at 10% 105%, rgba(44,156,130,0.08), transparent 55%),
+      var(--void);
+    color:var(--ink);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+
+  a{color:inherit}
+
+  /* ═══════════ TOP STRIP ═══════════ */
+  .topstrip{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px clamp(20px,4vw,56px);
+    border-bottom:1px solid var(--line-soft);
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--ink-faint);
+    letter-spacing:0.4px;
+  }
+  .topstrip .status{display:flex;align-items:center;gap:8px}
+  .topstrip .dot{width:6px;height:6px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal)}
+  #settings-btn{font-size:11px}
+
+  /* ═══════════ HERO ═══════════ */
+  .hero{
+    max-width:1180px;
+    margin:0 auto;
+    padding:clamp(48px,7vw,88px) clamp(20px,4vw,56px) clamp(32px,5vw,56px);
+    display:grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap:56px;
+    align-items:center;
+  }
+
+  .emblem-wrap{
+    display:flex;
+    justify-content:center;
+    order:2;
+  }
+
+  .emblem{ width:min(280px, 70vw); height:auto; }
+
+  .hero-copy{ order:1; }
+
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--gold-hi);
+    background:rgba(201,162,39,0.08);
+    border:1px solid var(--line);
+    padding:6px 12px 6px 10px;
+    border-radius:3px;
+    margin-bottom:22px;
+  }
+  .eyebrow .rule{width:14px;height:1px;background:var(--gold-hi)}
+
+  h1.title{
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:clamp(38px, 5vw, 58px);
+    line-height:1.04;
+    letter-spacing:-0.5px;
+    color:var(--ink);
+    margin-bottom:20px;
+  }
+  h1.title em{
+    font-style:italic;
+    font-weight:500;
+    color:var(--gold-hi);
+  }
+
+  .subtitle{
+    font-size:16px;
+    line-height:1.65;
+    color:var(--ink-dim);
+    max-width:520px;
+    margin-bottom:28px;
+  }
+
+  .hero-stats{
+    display:flex;
+    gap:32px;
+    padding-top:22px;
+    border-top:1px solid var(--line-soft);
+    max-width:520px;
+  }
+  .stat .num{
+    font-family:var(--font-display);
+    font-size:26px;
+    font-weight:600;
+    color:var(--ink);
+    letter-spacing:-0.5px;
+  }
+  .stat .lbl{
+    font-family:var(--font-mono);
+    font-size:10px;
+    color:var(--ink-faint);
+    text-transform:uppercase;
+    letter-spacing:1px;
+    margin-top:4px;
+  }
+
+  /* ═══════════ PORTAL SECTION ═══════════ */
+  .portals{
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 clamp(20px,4vw,56px) clamp(60px,8vw,96px);
+  }
+
+  .portals-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:16px;
+    margin-bottom:20px;
+    border-bottom:1px solid var(--line-soft);
+    padding-bottom:14px;
+  }
+  .portals-head h2{
+    font-family:var(--font-display);
+    font-size:15px;
+    font-weight:600;
+    letter-spacing:0.3px;
+    color:var(--ink-dim);
+  }
+  .portals-head .count{
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--ink-faint);
+  }
+
+  .portal-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1px;
+    background:var(--line-soft);
+    border:1px solid var(--line-soft);
+    border-radius:16px;
+    overflow:hidden;
+  }
+
+  .portal-card{
+    background:var(--card);
+    padding:38px 36px 34px;
+    text-decoration:none;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    transition:background 0.35s ease;
+  }
+  .portal-card:hover{background:var(--card-hi)}
+
+  .portal-index{
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--ink-faint);
+    letter-spacing:1px;
+    margin-bottom:26px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .portal-card.admin .portal-index{color:rgba(201,162,39,0.55)}
+
+  .seal{
+    width:46px;height:46px;
+    border-radius:50%;
+    border:1px solid var(--line-soft);
+    display:flex;align-items:center;justify-content:center;
+    font-size:19px;
+    flex-shrink:0;
+    background:rgba(255,255,255,0.02);
+    transition:border-color 0.3s, transform 0.3s;
+  }
+  .portal-card:hover .seal{transform:rotate(8deg)}
+  .portal-card.citizen .seal{color:var(--teal);border-color:rgba(44,156,130,0.3)}
+  .portal-card.admin .seal{color:var(--gold-hi);border-color:rgba(201,162,39,0.3)}
+
+  .portal-name{
+    font-family:var(--font-display);
+    font-size:25px;
+    font-weight:600;
+    letter-spacing:-0.3px;
+    color:var(--ink);
+    margin-bottom:12px;
+  }
+
+  .portal-desc{
+    font-size:13.5px;
+    line-height:1.65;
+    color:var(--ink-dim);
+    margin-bottom:28px;
+    flex-grow:1;
+  }
+
+  .portal-foot{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding-top:20px;
+    border-top:1px solid var(--line-soft);
+  }
+
+  .portal-action{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:var(--font-body);
+    font-size:13px;font-weight:600;
+    color:var(--ink);
+    transition:gap 0.2s;
+  }
+  .portal-card:hover .portal-action{gap:12px}
+  .portal-action .arrow{
+    width:22px;height:22px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;
+    border:1px solid var(--line-soft);
+  }
+  .portal-card.citizen .portal-action .arrow{color:var(--teal)}
+  .portal-card.admin .portal-action .arrow{color:var(--gold-hi)}
+
+  .portal-tag{
+    font-family:var(--font-mono);
+    font-size:9.5px;
+    letter-spacing:0.6px;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+  }
+
+  /* ═══════════ FOOTER ═══════════ */
+  .site-footer{
+    max-width:1180px;
+    margin:0 auto;
+    padding:24px clamp(20px,4vw,56px) 40px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+    font-family:var(--font-mono);
+    font-size:10.5px;
+    color:var(--ink-faint);
+    letter-spacing:0.6px;
+  }
+  .site-footer .divider{color:var(--ink-faint);opacity:0.4}
+
+  /* ═══════════ FOCUS STATES ═══════════ */
+  a:focus-visible, button:focus-visible{
+    outline:2px solid var(--gold-hi);
+    outline-offset:3px;
+    border-radius:2px;
+  }
+
+  /* ═══════════ RESPONSIVE ═══════════ */
+  @media (max-width: 880px){
+    .hero{grid-template-columns:1fr;gap:32px;text-align:left}
+    .emblem-wrap{order:1;justify-content:flex-start}
+    .emblem{width:120px}
+    .hero-copy{order:2}
+    .portal-grid{grid-template-columns:1fr}
+    .hero-stats{gap:24px;flex-wrap:wrap}
+  }
+</style>
+</head>
+<body>
+
+  <div class="topstrip">
+    <div class="status"><span class="dot"></span>SYSTEM OPERATIONAL · IN-BIH-01</div>
+    <div id="settings-btn"><!-- Translation toggler injected here by translation.js --></div>
+  </div>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="rule"></span>AI-NATIVE PUBLIC INFRASTRUCTURE</div>
+        <h1 class="title" data-tk="app_title">JanVikas <em>AI</em></h1>
+        <p class="subtitle" data-tk="gateway_subtitle">
+          A development intelligence bridge connecting native citizen voices with data-driven legislative prioritization and strategic budgetary allocation.
         </p>
+        <div class="hero-stats">
+          <div class="stat"><div class="num">28</div><div class="lbl">States Covered</div></div>
+          <div class="stat"><div class="num">12</div><div class="lbl">Languages Parsed</div></div>
+          <div class="stat"><div class="num">24/7</div><div class="lbl">Signal Intake</div></div>
+        </div>
+      </div>
+
+      <div class="emblem-wrap">
+        <svg class="emblem" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="JanVikas seal">
+          <circle cx="100" cy="100" r="96" fill="none" stroke="#C9A227" stroke-opacity="0.35" stroke-width="1"/>
+          <circle cx="100" cy="100" r="80" fill="none" stroke="#C9A227" stroke-opacity="0.2" stroke-width="1"/>
+          <g stroke="#C9A227" stroke-opacity="0.5" stroke-width="1">
+            <line x1="100" y1="4" x2="100" y2="18"/>
+            <line x1="100" y1="182" x2="100" y2="196"/>
+            <line x1="4" y1="100" x2="18" y2="100"/>
+            <line x1="182" y1="100" x2="196" y2="100"/>
+          </g>
+          <circle cx="100" cy="100" r="52" fill="none" stroke="#5B6EE1" stroke-opacity="0.45" stroke-width="1"/>
+          <g fill="#2C9C82" fill-opacity="0.85">
+            <circle cx="100" cy="48" r="2.4"/>
+            <circle cx="129" cy="65" r="2.4"/>
+            <circle cx="129" cy="135" r="2.4"/>
+            <circle cx="100" cy="152" r="2.4"/>
+            <circle cx="71" cy="135" r="2.4"/>
+            <circle cx="71" cy="65" r="2.4"/>
+          </g>
+          <text x="100" y="106" text-anchor="middle" font-family="Fraunces, serif" font-size="30" font-weight="600" fill="#EEF1F6">JV</text>
+        </svg>
+      </div>
+    </section>
+
+    <section class="portals">
+      <div class="portals-head">
+        <h2>Access Points</h2>
+        <span class="count">02 PORTALS</span>
       </div>
 
       <div class="portal-grid">
-        <!-- Citizen Intake Portal -->
+        <!-- Citizen Intake -->
         <a href="citizen.html" class="portal-card citizen">
-          <div>
-            <div class="portal-icon">📢</div>
-            <div class="portal-meta">Democracy Front-End</div>
-            <h2 class="portal-name">Citizen Signal Intake</h2>
-            <p class="portal-desc">
-              Speak or write in your local native language. Our Gemini-powered analysis pipeline translates, synthesizes, and fuses your input into high-fidelity actionable development signal records.
-            </p>
+          <div class="portal-index">
+            <span data-tk="citizen_intake_badge">DEMOCRACY FRONT-END</span>
+            <span class="seal">📢</span>
           </div>
-          <div class="portal-action">
-            Enter Intake Portal <span>→</span>
+          <h3 class="portal-name" data-tk="citizen_intake_title">Citizen Signal Intake</h3>
+          <p class="portal-desc" data-tk="citizen_intake_desc">
+            Speak or write in your local native language. Our analysis pipeline translates, synthesizes, and fuses your input into high-fidelity, actionable development signal records.
+          </p>
+          <div class="portal-foot">
+            <span class="portal-tag">Public Access</span>
+            <span class="portal-action" data-tk="citizen_intake_action">Enter Portal <span class="arrow">→</span></span>
           </div>
         </a>
 
         <!-- Legislative Dashboard -->
         <a href="dashboard.html" class="portal-card admin">
-          <div>
-            <div class="portal-icon">🏛️</div>
-            <div class="portal-meta">Administrative Back-End</div>
-            <h2 class="portal-name">MP Decision Cockpit</h2>
-            <p class="portal-desc">
-              Inspect real-time predictive development heatmaps, automatically rank capital infrastructure proposals, track open budget windows, and query the legislative copilot.
-            </p>
+          <div class="portal-index">
+            <span data-tk="admin_cockpit_badge">ADMINISTRATIVE BACK-END</span>
+            <span class="seal">🏛️</span>
           </div>
-          <div class="portal-action">
-            Access Command Cockpit <span>→</span>
+          <h3 class="portal-name" data-tk="admin_cockpit_title">MP Decision Cockpit</h3>
+          <p class="portal-desc" data-tk="admin_cockpit_desc">
+            Inspect real-time predictive development heatmaps, rank capital infrastructure proposals, track open budget windows, and query the legislative copilot.
+          </p>
+          <div class="portal-foot">
+            <span class="portal-tag">Credentialed Access</span>
+            <span class="portal-action" data-tk="admin_cockpit_action">Enter Cockpit <span class="arrow">→</span></span>
           </div>
         </a>
       </div>
+    </section>
+  </main>
 
-      <div class="footer-credit">
-        JANVIKAS AI · DISASTER & DEVELOPMENT COGNITIVE PLATFORM · GITHUB PAGES STANDALONE
-      </div>
-    </div>
-  </body>
+  <footer class="site-footer">
+    <span>JANVIKAS AI <span class="divider">·</span> DISASTER &amp; DEVELOPMENT COGNITIVE PLATFORM</span>
+    <span>GITHUB PAGES STANDALONE</span>
+  </footer>
+
+  <script src="js/translation.js"></script>
+</body>
 </html>
