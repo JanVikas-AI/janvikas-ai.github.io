@@ -166,10 +166,7 @@ async function initializeFirebase() {
         tabManager: persistentMultipleTabManager()
       })
     };
-    if (config.firestoreDatabaseId) {
-      firestoreConfig.databaseId = config.firestoreDatabaseId;
-    }
-    db = initializeFirestore(app, firestoreConfig);
+    db = initializeFirestore(app, firestoreConfig, config.firestoreDatabaseId);
 
     isFirebaseActive = true;
     console.log('🔥 Firebase Persistence Engine successfully mounted with multi-tab offline cache.');
